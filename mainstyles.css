@@ -1,0 +1,40 @@
+/* root code */
+
+:root{
+    background-color: #979797;
+}
+
+.centered{
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Footer Code */
+
+.footer-links{
+    display: flex;
+    align-items: center;
+    align-self: center;
+    justify-content: space-between;
+    max-width: clamp(100px,30%,35%);
+    margin:0px auto;
+}
+
+.footer-links a img{
+    max-height: 40px;
+    transition: 0.5s;
+}
+
+.footer-links a img:hover{
+    transform: translateY(-10px);
+    filter: invert(1) drop-shadow(0px 8px 5px #222); 
+}
+
+footer{
+    min-height: 80px;
+    padding-top: 20px;
+    background-color: #979797;
+}
+
+
+

@@ -9,6 +9,31 @@
     margin-right: auto;
 }
 
+/* Code Formatting */
+
+code {
+    font-family: Monaco, monospace;
+    line-height: 100%;
+    background-color: #eee;
+    padding: 0.2em;
+    letter-spacing: -0.05em;
+    word-break: normal;
+    border-radius: 5px;
+    box-shadow: 1px 10px 13px -8px rgba(0,0,0,0.54);
+    -webkit-box-shadow: 1px 10px 13px -8px rgba(0,0,0,0.54);
+    -moz-box-shadow: 1px 10px 13px -8px rgba(0,0,0,0.54);
+  }
+
+
+
+pre code {
+    border: none;
+    background: none;
+    line-height: 1em;
+    letter-spacing: normal;
+    word-break: break-all;
+  }
+
 /* Footer Code */
 
 .footer-links{
@@ -21,7 +46,7 @@
 }
 
 .footer-links a img{
-    max-height: 40px;
+    max-height: clamp(20px,5vw,40px);
     transition: 0.5s;
 }
 

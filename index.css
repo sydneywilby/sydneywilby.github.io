@@ -9,3 +9,40 @@
     -ms-filter: blur(5px);
     filter: blur(5px); */
 }
+
+.grey{
+    background-color: #eee;
+    padding: 0.2em;
+    border-radius: 5px;
+    box-shadow: 1px 10px 13px -8px rgba(0,0,0,0.54);
+    -webkit-box-shadow: 1px 10px 13px -8px rgba(0,0,0,0.54);
+    -moz-box-shadow: 1px 10px 13px -8px rgba(0,0,0,0.54);
+}
+
+.slide-code-section{
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    min-height: 600px !important;
+    margin: auto !important;
+    width: 100%;
+}
+
+.slide-code-section code{
+    width: calc(90% );
+    font-size: clamp(5px,0.8em,40px);
+}
+
+
+@media only screen and (max-width: 575px){
+    .profile-large-center{
+        display: flex;
+        justify-content: center;
+        margin: 0px auto;
+    }
+}
+
+.profile-large{
+    width: clamp(50px,80%,250px);
+    height: auto;
+}

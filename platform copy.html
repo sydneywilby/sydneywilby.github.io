@@ -90,12 +90,46 @@ function update(){
             p.y = newY;
         }
 
+        //select the next aproximation i.e assume not in block
+        let angle = p.rotation;
+        let nextRowX = 0;
+        let nextRowY = 0;
+
+        let nextColX = 0;
+        let nextColY = 0;
+
+        if(p.vx > 0){
+            nextColX = (Math.floor(p.x/tileSize) + 1) * tileSize;
+        }else{
+            nextColX = Math.floor(p.x/tileSize) * tileSize;
+        }
+        nextColY = p.y - (p.x - nextColX)*Math.tan(toRadians(angle));
+
+
+        if(p.vy > 0){
+            nextRowY = (Math.floor(p.y/tileSize) + 1) * tileSize;
+        }else{
+            nextRowY = Math.floor(p.y/tileSize) * tileSize;
+        }
+
+        nextRowX = p.x + (p.y - nextRowY)/Math.tan(toRadians(-angle));
+
+        console.log(" " + nextColX + " " + nextColY + " " + nextRowX + " " + nextRowY + " ")
+
+
+
+        // draw grid 
         ctx.fillStyle = "black"
+        ctx.strokeStyle = "black"
 
         for(var i = 0; i < worldWidth;i++){
             for(var j = 0; j < worldHeight;j++){
                 if(map[j][i] != 0){
                     ctx.fillRect(tileSize*i,tileSize*j,tileSize,tileSize);
+                }else{
+                    ctx.beginPath();
+                    ctx.rect(tileSize*i,tileSize*j,tileSize,tileSize);
+                    ctx.stroke();
                 }
             }
         }
@@ -106,6 +140,18 @@ function update(){
         ctx.beginPath()
         ctx.moveTo(p.x,p.y)
         ctx.lineTo(p.x + 10*p.vx,p.y + 10*p.vy)
+        ctx.stroke()
+
+        ctx.beginPath()
+        ctx.strokeStyle = "red"
+        ctx.moveTo(p.x,p.y)
+        ctx.lineTo(nextRowX,nextRowY);
+        ctx.stroke()
+        
+        ctx.beginPath()
+        ctx.strokeStyle = "green"
+        ctx.moveTo(p.x,p.y)
+        ctx.lineTo(nextColX,nextColY);
         ctx.stroke()
 }
 
@@ -134,7 +180,7 @@ class Player {
         this.y = tileSize*1.5;
         this.z = 0;
         this.maxspeed = 2;
-        this.rotation = 90;
+        this.rotation = 0;
         this.vx = 1;
         this.vy = 1;
     }
@@ -142,6 +188,7 @@ class Player {
 }
 
 </script>
+<img src = "graph.jpg">
 <p>Make sure this window has focus, then use the arrow keys on you keyboard to move the red square.</p>
 <p>When pressing both the left and the down arrow, the red square will move both down and to the left.</p>
 </body>

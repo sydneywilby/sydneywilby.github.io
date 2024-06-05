@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel="stylesheet" href="platform.css">
+        
+</head>
+<body onload="startGame()">
+        <canvas id="screen"></canvas>
+<script>
+'use strict'
+
+var p;
+var keys;
+
+const tileSize = 40;
+
+const map = [
+[1, 1, 1, 1], 
+[1, 0, 0, 0],
+[1, 1, 1, 1]
+];
+
+const worldWidth = map[0].length;
+const worldHeight = map.length;
+
+//game start and functions
+function startGame() {
+    p = new Player(100,100,0);
+    
+    keys = [];
+    window.addEventListener('keydown', function (e) {
+        this.keys = (this.keys || []);
+        this.keys[e.keyCode] = (e.type == "keydown");
+    })
+
+    window.addEventListener('keyup', function (e) {
+        this.keys[e.keyCode] = (e.type == "keydown");            
+    })
+
+    setInterval(update, 20);
+}
+
+function update(){
+    const c = document.getElementById("screen");
+        const ctx = c.getContext("2d");
+       
+        //clears screen stops drawing over same image
+        ctx.clearRect(0, 0, c.width, c.height);
+
+        let speed = 0;
+
+        //forward and backward walking
+        if (this.keys && this.keys[87]) {
+            speed += p.maxspeed; 
+            console.log("Forwards")
+        }
+
+        if (this.keys && this.keys[83]) {
+            speed += -p.maxspeed/2;
+            console.log("Backwards")
+        }
+        //rotation
+        let rotation = p.rotation;
+        if (this.keys && this.keys[65]) {
+            rotation += -4;
+        }
+        if (this.keys && this.keys[68]) {
+            rotation += 4; 
+        }
+        p.rotation = rotation;
+
+        const cos =  Math.sin(toRadians(rotation));
+        const sin =  Math.cos(toRadians(rotation));
+
+        // set rotation vector
+       
+        p.vx = sin;
+        p.vy = cos;
+
+        const newX = p.x + sin * speed;
+        const newY = p.y + cos * speed;
+        // translate x and y by vector vx and vy
+
+        if(!isCollisionWithTile(newX,p.y)){
+            p.x = newX;
+        }
+
+        if(!isCollisionWithTile(p.x,newY)){
+            p.y = newY;
+        }
+
+        ctx.fillStyle = "black"
+
+        for(var i = 0; i < worldWidth;i++){
+            for(var j = 0; j < worldHeight;j++){
+                if(map[j][i] != 0){
+                    ctx.fillRect(tileSize*i,tileSize*j,tileSize,tileSize);
+                }
+            }
+        }
+
+        ctx.fillStyle = "red";
+        ctx.fillRect(p.x,p.y,5,5);
+
+        ctx.beginPath()
+        ctx.moveTo(p.x,p.y)
+        ctx.lineTo(p.x + 10*p.vx,p.y + 10*p.vy)
+        ctx.stroke()
+}
+
+function isCollisionWithTile(x,y){
+
+    if(x < 0)return true;
+    if(x > worldWidth*tileSize)return true;
+    if(y < 0) return true;
+    if(y > worldHeight*tileSize)return true;
+
+    return(map[Math.floor(y/tileSize)][Math.floor(x/tileSize)] != 0)
+
+}
+
+function toRadians(degrees){
+    let deg = degrees * Math.PI / 180;
+    return deg;
+}
+
+
+class Player {
+
+    constructor(){
+        this.x = tileSize*1.5;
+        this.y = tileSize*1.5;
+        this.z = 0;
+        this.maxspeed = 2;
+        this.rotation = 90;
+        this.vx = 1;
+        this.vy = 1;
+    }
+    
+}
+
+</script>
+<p>Make sure this window has focus, then use the arrow keys on you keyboard to move the red square.</p>
+<p>When pressing both the left and the down arrow, the red square will move both down and to the left.</p>
+</body>
+</html>

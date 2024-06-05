@@ -2,19 +2,89 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel="stylesheet" href="platform.css">
+        
 </head>
 <body onload="startGame()">
+        <canvas id="screen" ></canvas>
 <script>
+'use strict'
 
-class entity {
-    constructor(x,y,z){
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
+var p;
+
+function startGame() {
+    p = new Player(100,100,0);
 }
 
-class Player extends entity {
+
+class Player {
+
+    constructor(){
+        this.x = 0;
+        this.y = 0;
+        this.z = 0;
+
+        console.log(`x: ${this.x}, y: ${this.y}`);
+
+        this.canvas = document.getElementById("screen");
+        this.cxt = this.canvas.getContext("2d");
+        this.keys = {};
+
+        
+        window.addEventListener('keydown', function (e) {
+            this.keys = (this.keys || []);
+            this.keys[e.keyCode] = (e.type == "keydown");
+        })
+
+        window.addEventListener('keyup', function (e) {
+            this.keys[e.keyCode] = (e.type == "keydown");            
+        })
+
+        // this.update = this.update.bind(this);
+        this.interval = setInterval(this.update, 20);
+
+        this.vx = 1;
+        this.vy = 0;
+        this.speed = 0;
+        this.turn = 0;
+    }
+
+    update(){
+        const c = document.getElementById("screen");
+        const ctx = c.getContext("2d");
+       
+        ctx.clearRect(0, 0, c.width, c.height);
+
+        this.speed = 0;
+        this.turn = 0;
+        if (this.keys && this.keys[87]) {
+            this.speed = 1; 
+            console.log("Forwards")
+        }
+        if (this.keys && this.keys[83]) {
+            this.speed = -0.5; 
+            console.log("Backwards")
+        }
+
+        if (this.keys && this.keys[65]) {this.turn += -1; }
+        if (this.keys && this.keys[68]) {this.turn += 1; }
+
+
+        p.vx = p.x*Math.cos(this.turn) - p.y*Math.sin(this.turn);
+        p.vy = this.x*Math.sin(this.turn) + this.y*Math.cos(this.turn);
+
+        this.x += this.vx*this.speed;
+        this.y += this.vy*this.speed;
+
+        ctx.fillStyle = "red";
+        ctx.fillRect(this.x,this.y,10,10);
+
+        console.log(`x: ${this.x}, y: ${this.y}`);
+
+
+    }
+
+
 }
 
 var myGamePiece;
@@ -24,64 +94,6 @@ let map = [
 [4, 5, 6, 7],
 [8, 9, 0, 0]
 ];
-
-function startGame() {
-    myGameArea.start();
-    myGamePiece = new component(30, 30, "red", 10, 120);
-}
-
-var myGameArea = {
-    canvas : document.createElement("canvas"),
-    start : function() {
-        this.canvas.width = 480;
-        this.canvas.height = 270;
-        this.context = this.canvas.getContext("2d");
-        document.body.insertBefore(this.canvas, document.body.childNodes[0]);
-        this.interval = setInterval(updateGameArea, 20);
-        window.addEventListener('keydown', function (e) {
-            myGameArea.keys = (myGameArea.keys || []);
-            myGameArea.keys[e.keyCode] = (e.type == "keydown");
-        })
-        window.addEventListener('keyup', function (e) {
-            myGameArea.keys[e.keyCode] = (e.type == "keydown");            
-        })
-    }, 
-    clear : function(){
-        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    }
-}
-
-function component(width, height, color, x, y) {
-    this.gamearea = myGameArea;
-    this.width = width;
-    this.height = height;
-    this.speedX = 0;
-    this.speedY = 0;    
-    this.x = x;
-    this.y = y;    
-    this.update = function() {
-        ctx = myGameArea.context;
-        ctx.fillStyle = color;
-        ctx.fillRect(this.x, this.y, this.width, this.height);
-    }
-    this.newPos = function() {
-        this.x += this.speedX;
-        this.y += this.speedY;        
-    }    
-}
-
-
-function updateGameArea() {
-    myGameArea.clear();
-    myGamePiece.speedX = 0;
-    myGamePiece.speedY = 0;    
-    if (myGameArea.keys && myGameArea.keys[37]) {myGamePiece.speedX = -1; }
-    if (myGameArea.keys && myGameArea.keys[39]) {myGamePiece.speedX = 1; }
-    if (myGameArea.keys && myGameArea.keys[38]) {myGamePiece.speedY = -1; }
-    if (myGameArea.keys && myGameArea.keys[40]) {myGamePiece.speedY = 1; }
-    myGamePiece.newPos();    
-    myGamePiece.update();
-}
 
 </script>
 <p>Make sure this window has focus, then use the arrow keys on you keyboard to move the red square.</p>

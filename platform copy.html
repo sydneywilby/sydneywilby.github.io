@@ -13,17 +13,24 @@
 var p;
 var keys;
 
-const tileSize = 40;
+const tileSize = 80;
+const fov = 90;
+const width = 900;
+const height = 900;
+const columnWidth = 6.5;
+const rayCount = Math.ceil(width / columnWidth);
+const viewDist = (width/2) / Math.tan(toRadians(fov/2));
+let rayAngles = null;
 
 const map = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
-    [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
+    [1, 0, -1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
     [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1],
-    [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1],
-    [1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1],
-    [1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1],
+    [1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1],
+    [1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1],
     [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1],
     [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1],
@@ -39,6 +46,31 @@ const map = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ];
 
+const floor = [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1],
+    [1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1],
+    [1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1],
+    [1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1],
+    [1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1],
+    [1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1],
+    [1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1],
+    [1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1],
+    [1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1],
+    [1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1],
+    [1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1],
+    [1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1],
+    [1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1],
+    [1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1],
+    [1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1],
+    [1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+];
+
+
 
 const worldWidth = map[0].length;
 const worldHeight = map.length;
@@ -46,7 +78,7 @@ const worldHeight = map.length;
 //game start and functions
 function startGame() {
     p = new Player(100,100,0);
-    
+    createRayAngles();
     keys = [];
     window.addEventListener('keydown', function (e) {
         this.keys = (this.keys || []);
@@ -59,6 +91,15 @@ function startGame() {
 
     setInterval(update, 20);
 }
+
+function createRayAngles(){
+    rayAngles = [];
+    for (let i=0;i<rayCount;i++) {
+        let screenX = (rayCount/2 - i) * columnWidth
+        let rayAngle = Math.atan(screenX / viewDist);
+        rayAngles.push(rayAngle)
+    }
+  }
 
 function update(){
     const c = document.getElementById("screen");
@@ -82,10 +123,10 @@ function update(){
         //rotation
         let rotation = p.rotation;
         if (this.keys && this.keys[65]) {
-            rotation += -4;
+            rotation += -3;
         }
         if (this.keys && this.keys[68]) {
-            rotation += 4; 
+            rotation += 3; 
         }
         p.rotation = rotation;
 
@@ -110,11 +151,17 @@ function update(){
         }
 
         //select the next aproximation i.e assume not in block
-        for(let i = -45; i <= 45;i += 1){
 
-        let angle = p.rotation + i;
-        let vx = Math.cos(toRadians(angle));
-        let vy = Math.sin(toRadians(angle));
+        for(let rayItter = 0;rayItter < rayAngles.length;rayItter++){
+
+        let rayAngle = rayAngles[rayItter];
+        let angle = toRadians(p.rotation);
+        // console.log(rayAngle);
+         angle -= rayAngle;
+
+        let vx = Math.cos(angle);
+        let vy = Math.sin(angle);
+        let horizontal = true;
         
         let nextRowX = 0;
         let nextRowY = 0;
@@ -126,58 +173,112 @@ function update(){
         let colDeltaX = 0;
         let colDeltaY = 0;
 
+        let difference = 0.00000001;
+
         if(vx > 0){
-            nextColX = (Math.floor(p.x/tileSize) + 1) * tileSize + 0.01;
+            nextColX = (Math.floor(p.x/tileSize) + 1) * tileSize + difference;
             colDeltaX = tileSize;
         }else{
-            nextColX = Math.floor(p.x/tileSize) * tileSize - 0.01;
+            nextColX = Math.floor(p.x/tileSize) * tileSize - difference;
             colDeltaX = -tileSize;
         }
-        nextColY = p.y - (p.x - nextColX)*Math.tan(toRadians(angle));
+        nextColY = p.y - (p.x - nextColX)*Math.tan(angle);
 
 
         if(vy > 0){
-            nextRowY = (Math.floor(p.y/tileSize) + 1) * tileSize + 0.01;
+            nextRowY = (Math.floor(p.y/tileSize) + 1) * tileSize + difference;
             rowDeltaY = tileSize;
         }else{
-            nextRowY = Math.floor(p.y/tileSize) * tileSize - 0.01;
+            nextRowY = Math.floor(p.y/tileSize) * tileSize - difference;
             rowDeltaY = -tileSize;
         }
-        nextRowX = p.x + (p.y - nextRowY)/Math.tan(toRadians(-angle));
+        nextRowX = p.x + (p.y - nextRowY)/Math.tan(-angle);
 
         console.log(" " + nextColX + " " + nextColY + " " + nextRowX + " " + nextRowY + " ")
 
-        colDeltaY = Math.tan(toRadians(angle))*colDeltaX;
-        rowDeltaX = 1/Math.tan(toRadians(angle))*rowDeltaY;
+        colDeltaY = Math.tan(angle)*colDeltaX;
+        rowDeltaX = 1/Math.tan(angle)*rowDeltaY;
 
         let currentDepth = 0;
         const maxDepth = 20;
         let hit = false;
+
         let distanceRow = 0;
         let distanceColumn = 0;
 
+        let portalRow = false;
+        let portalRowDistance = -1;
+    
+        let portalCol = false;
+        let portalColDistance = -1;
+
+        let portalDistance = -1;
+
+        let portal = false;
+
+        let startX = p.x;
+        let startY = p.y;
+
+        //row intercept
 
         while(!hit && currentDepth < maxDepth){
             hit = isCollisionWithTile(nextRowX,nextRowY);
+            
+            if(hit && getBlock(nextRowX,nextRowY) < 0){
+                 distanceRow += Math.hypot(Math.abs(startX - 
+                 
+                 nextRowX),Math.abs(startY - nextRowY));
+
+
+                startX = nextRowX;
+                startY = nextRowY;
+
+            //     if(portalRowDistance == -1){
+            //         portalRowDistance = distanceRow;
+            //     } 
+
+                
+
+                // portalRow = true;
+                hit = false;
+            }
+
             if(!hit){
                 currentDepth++;
                 nextRowX += rowDeltaX;
                 nextRowY += rowDeltaY;
             }
         }
-        distanceRow = Math.hypot(Math.abs(p.x - nextRowX),Math.abs(p.y - nextRowY));
+        distanceRow += Math.hypot(Math.abs(startX - nextRowX),Math.abs(startY - nextRowY));
 
+        startX = p.x;
+        startY = p.y;
         currentDepth = 0;
         hit = false;
         while(!hit && currentDepth < maxDepth){
             hit = isCollisionWithTile(nextColX,nextColY);
+            
+            if(hit && getBlock(nextColX,nextColY) < 0){
+                distanceColumn += Math.hypot(Math.abs(startX - nextColX),Math.abs(startY - nextColY));
+
+                startX = nextColX;
+                startY = nextColY;
+
+                if(portalColDistance == -1){
+                    portalColDistance = distanceColumn;
+                } 
+
+                portalCol = true;
+                hit = false;
+            }
+
             if(!hit){
                 currentDepth++;
                 nextColX += colDeltaX;
                 nextColY += colDeltaY;
             }
         }
-        distanceColumn = Math.hypot(Math.abs(p.x - nextColX),Math.abs(p.y - nextColY));
+        distanceColumn += Math.hypot(Math.abs(startX - nextColX),Math.abs(startY - nextColY));
 
 
 
@@ -187,25 +288,60 @@ function update(){
         if(distanceRow < distanceColumn){
             interceptX = nextRowX;
             interceptY = nextRowY;
+            if(portalRow){
+                portal = true;
+                portalDistance = portalRowDistance;
+            }
+            horizontal = true;
         }else{
             interceptX = nextColX;
             interceptY = nextColY;
+            if(portalCol){
+                portal = true;
+            //     portalDistance = portalColDistance;
+            }
+            horizontal = false;
         }
 
-        // ctx.strokeStyle = "yellow";
-        // ctx.lineWidth = 1;
-        // ctx.beginPath()
-        // ctx.moveTo(p.x,p.y)
-        // ctx.lineTo(interceptX,interceptY);
-        // ctx.stroke()
+        ctx.strokeStyle = "yellow";
+        ctx.lineWidth = 1;
+        ctx.beginPath()
+        ctx.moveTo(p.x,p.y)
+        ctx.lineTo(interceptX,interceptY);
+        ctx.stroke();
 
-        let width = 900;
-        let height = 900;
+        let wh = (viewDist/(Math.min(distanceColumn,distanceRow)*Math.cos(rayAngle)))*tileSize;
 
-        let wh = (8000/Math.min(distanceColumn,distanceRow));
+        if(portalCol || portalRow){
+            ctx.fillStyle = "black";
+            let whp = (viewDist/(Math.min(portalColDistance,portalRowDistance)*Math.cos(rayAngle)))*tileSize;
 
-        ctx.fillRect(width/90*(i+45),height/2 - wh/2,width/90,wh);
+            ctx.fillRect((width/rayCount)*rayItter,height/2 - whp/2,width/rayCount,whp);
 
+        }else if(horizontal){
+            if(vy > 0){
+                ctx.fillStyle = "red";
+            }else{
+                ctx.fillStyle = "orange"
+            }
+            
+        }else{
+            if(vx > 0){
+                ctx.fillStyle = "green";
+            }else{
+                ctx.fillStyle = "yellow"
+            }
+        }
+
+
+        ctx.fillRect((width/rayCount)*rayItter,height/2 - wh/2,width/rayCount,wh);
+
+        if(portal){
+            // wh = (viewDist/portalDistance*Math.cos(rayAngle))*tileSize;
+
+            // ctx.fillStyle = "rgba(40, 200, 70, 0.2)";
+            // ctx.fillRect((width/rayCount)*rayItter,height/2 - wh/2,width/rayCount,wh);
+        }
         }
 
 
@@ -260,6 +396,17 @@ function isCollisionWithTile(x,y){
 
 }
 
+function getBlock(x,y){
+    if(x < 0)return Infinity;
+    if(x > worldWidth*tileSize)return Infinity;
+    if(y < 0) return Infinity;
+    if(y > worldHeight*tileSize)return Infinity;
+
+    return map[Math.floor(y/tileSize)][Math.floor(x/tileSize)];
+}
+
+
+
 function toRadians(degrees){
     let deg = degrees * Math.PI / 180;
     return deg;
@@ -272,7 +419,7 @@ class Player {
         this.y = tileSize*1.5;
         this.z = 0;
         this.maxspeed = 2;
-        this.rotation = 1;
+        this.rotation = 0.5;
         this.vx = 1;
         this.vy = 1;
     }

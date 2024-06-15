@@ -17,10 +17,12 @@ const tileSize = 80;
 const fov = 90;
 const width = 900;
 const height = 900;
-const columnWidth = 6.5;
+const columnWidth = 1;
 const rayCount = Math.ceil(width / columnWidth);
 const viewDist = (width/2) / Math.tan(toRadians(fov/2));
+
 let rayAngles = null;
+let rays = null;
 
 const map = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -79,6 +81,7 @@ const worldHeight = map.length;
 function startGame() {
     p = new Player(100,100,0);
     createRayAngles();
+    createRays();
     keys = [];
     window.addEventListener('keydown', function (e) {
         this.keys = (this.keys || []);
@@ -98,6 +101,14 @@ function createRayAngles(){
         let screenX = (rayCount/2 - i) * columnWidth
         let rayAngle = Math.atan(screenX / viewDist);
         rayAngles.push(rayAngle)
+    }
+  }
+
+  function createRays(){
+    rays = [];
+    for (let i=0;i<rayCount;i++) {
+        let ray = new Ray(0,0,false);
+        rays.push(ray);
     }
   }
 
@@ -173,26 +184,29 @@ function update(){
         let colDeltaX = 0;
         let colDeltaY = 0;
 
+        let startX = p.x;
+        let startY = p.y;
+
         let difference = 0.00000001;
 
         if(vx > 0){
-            nextColX = (Math.floor(p.x/tileSize) + 1) * tileSize + difference;
+            nextColX = (Math.floor(startX/tileSize) + 1) * tileSize + difference;
             colDeltaX = tileSize;
         }else{
-            nextColX = Math.floor(p.x/tileSize) * tileSize - difference;
+            nextColX = Math.floor(startX/tileSize) * tileSize - difference;
             colDeltaX = -tileSize;
         }
-        nextColY = p.y - (p.x - nextColX)*Math.tan(angle);
+        nextColY = startY - (startX - nextColX)*Math.tan(angle);
 
 
         if(vy > 0){
-            nextRowY = (Math.floor(p.y/tileSize) + 1) * tileSize + difference;
+            nextRowY = (Math.floor(startY/tileSize) + 1) * tileSize + difference;
             rowDeltaY = tileSize;
         }else{
-            nextRowY = Math.floor(p.y/tileSize) * tileSize - difference;
+            nextRowY = Math.floor(startY/tileSize) * tileSize - difference;
             rowDeltaY = -tileSize;
         }
-        nextRowX = p.x + (p.y - nextRowY)/Math.tan(-angle);
+        nextRowX = startX + (startY - nextRowY)/Math.tan(-angle);
 
         console.log(" " + nextColX + " " + nextColY + " " + nextRowX + " " + nextRowY + " ")
 
@@ -216,9 +230,6 @@ function update(){
 
         let portal = false;
 
-        let startX = p.x;
-        let startY = p.y;
-
         //row intercept
 
         while(!hit && currentDepth < maxDepth){
@@ -239,7 +250,7 @@ function update(){
 
                 
 
-                // portalRow = true;
+                portalRow = true;
                 hit = false;
             }
 
@@ -314,9 +325,9 @@ function update(){
 
         if(portalCol || portalRow){
             ctx.fillStyle = "black";
-            let whp = (viewDist/(Math.min(portalColDistance,portalRowDistance)*Math.cos(rayAngle)))*tileSize;
+            // let whp = (viewDist/(Math.min(portalColDistance,portalRowDistance)*Math.cos(rayAngle)))*tileSize;
 
-            ctx.fillRect((width/rayCount)*rayItter,height/2 - whp/2,width/rayCount,whp);
+            // ctx.fillRect((width/rayCount)*rayItter,height/2 - whp/2,width/rayCount,whp);
 
         }else if(horizontal){
             if(vy > 0){
@@ -424,12 +435,14 @@ class Player {
         this.vy = 1;
     }
 }
+
 class Ray {
     constructor(interceptX,interceptY,horizontal){
         this.interceptX = interceptX;
         this.interceptY = interceptY;
         this.worldX = Math.floor(interceptX % tileSize) * tileSize;
         this.worldY = Math.floor(interceptY % tileSize) * tileSize;
+        
         this.horizontal = horizontal;
     }
     

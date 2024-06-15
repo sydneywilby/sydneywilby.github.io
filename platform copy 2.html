@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel="stylesheet" href="platform.css">
+        
+</head>
+<body onload="startGame()">
+        <canvas id="screen" width="900" height="900"></canvas>
+<script>
+'use strict'
+
+var p;
+var keys = null;
+
+const tileSize = 80;
+const fov = 90;
+const width = 900;
+const height = 900;
+const columnWidth = 1;
+const rayCount = Math.ceil(width / columnWidth);
+const viewDist = (width/2) / Math.tan(toRadians(fov/2));
+
+let rayAngles = null;
+let rays = null;
+
+const map = [
+    [-1, -1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
+    [1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1],
+    [1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1],
+    [1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1],
+    [1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+];
+
+const floor = [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1],
+    [1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1],
+    [1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1],
+    [1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1],
+    [1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1],
+    [1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1],
+    [1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1],
+    [1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1],
+    [1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1],
+    [1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1],
+    [1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1],
+    [1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1],
+    [1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1],
+    [1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1],
+    [1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1],
+    [1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+];
+
+
+
+const worldWidth = map[0].length;
+const worldHeight = map.length;
+
+//game start and functions
+function startGame() {
+    p = new Player(100,100,0);
+    createRayAngles();
+    createRays();
+    keys = [];
+    window.addEventListener('keydown', function (e) {
+        keys = (keys || []);
+        keys[e.keyCode] = (e.type == "keydown");
+    })
+
+    window.addEventListener('keyup', function (e) {
+        keys[e.keyCode] = (e.type == "keydown");            
+    })
+
+    setInterval(update, 20);
+}
+
+function createRayAngles(){
+    rayAngles = [];
+    for (let i=0;i<rayCount;i++) {
+        let screenX = (rayCount/2 - i) * columnWidth
+        let rayAngle = Math.atan(screenX / viewDist);
+        rayAngles.push(rayAngle)
+    }
+  }
+
+  function createRays(){
+    rays = [];
+    for (let i=0;i<rayCount;i++) {
+        let ray = new Ray(0,rayAngles[i],0,0,false);
+        rays.push(ray);
+    }
+  }
+
+function update(){
+    const c = document.getElementById("screen");
+        const ctx = c.getContext("2d");
+       
+        //clears screen stops drawing over same image
+        ctx.clearRect(0, 0, c.width, c.height);
+
+        movement();
+
+        //select the next aproximation i.e assume not in block
+
+        for(let rayItter = 0;rayItter < rayAngles.length;rayItter++){
+
+            let rayAngle = rayAngles[rayItter];
+            let angle = toRadians(p.rotation);
+            // console.log(rayAngle);
+            angle -= rayAngle;
+
+            let currentRay = rays[rayItter];
+            currentRay.angle = angle;
+
+            castRay(currentRay,p.x,p.y,0);
+
+            let block = getBlock(currentRay.interceptX,currentRay.interceptY);
+            
+            let recursive = 1;
+            while(block < 0 && recursive < 40){
+
+                //
+
+                let translationX = 3 * tileSize;
+                let translationY = 4 * tileSize;
+
+                let rotationX = translationX + 0.5 * tileSize;
+                let rotationY = translationY + 0.5 * tileSize;
+
+
+
+                currentRay.interceptX += translationX;
+                currentRay.interceptY += translationY;
+
+                let theta = 0;
+                currentRay.interceptX = (currentRay.interceptX - rotationX) * Math.cos(toRadians(theta)) - (currentRay.interceptY - rotationY) * Math.sin(toRadians(theta)) + rotationX;
+                currentRay.interceptY = (currentRay.interceptX - rotationX) * Math.sin(toRadians(theta)) + (currentRay.interceptY - rotationY) * Math.cos(toRadians(theta)) + rotationY;
+                
+                currentRay.angle += theta;
+                castRay(currentRay,currentRay.interceptX,currentRay.interceptY,currentRay.distance);
+                block = getBlock(currentRay.interceptX,currentRay.interceptY);
+            
+                recursive++;
+            }
+
+        }
+
+        for(let rayItter = 0;rayItter < rayAngles.length;rayItter++){
+            let ray = rays[rayItter];
+            let wh = (viewDist/(ray.distance*Math.cos(ray.angleDelta)))*tileSize;
+
+            let vx = Math.cos(ray.angle);
+            let vy = Math.sin(ray.angle);
+
+            if(getBlock(ray.interceptX,ray.interceptY) < 0){
+                ctx.fillStyle = "white";
+            }
+            else if(ray.horizontal){
+                if(vy > 0){
+                    ctx.fillStyle = "red";
+                }else{
+                    ctx.fillStyle = "orange"
+                }
+                
+            }else{
+                if(vx > 0){
+                    ctx.fillStyle = "green";
+                }else{
+                    ctx.fillStyle = "yellow"
+                }
+            }
+            ctx.fillRect((width/rayCount)*rayItter,height/2 - wh/2,width/rayCount,wh);
+        }
+
+
+        // draw grid 
+        ctx.fillStyle = "black"
+        ctx.strokeStyle = "black"
+
+        let smallDiv = 5;
+        let tileSizeSmall = tileSize / smallDiv;
+
+        for(var i = 0; i < worldWidth;i++){
+            for(var j = 0; j < worldHeight;j++){
+                if(map[j][i] != 0){
+                    if(map[j][i] < 0){
+                        ctx.fillStyle = "black";
+                    }else{
+                        ctx.fillStyle = "red";
+                    }
+                    ctx.fillRect(tileSizeSmall*i,tileSizeSmall*j,tileSizeSmall,tileSizeSmall);
+                }else{
+                    ctx.beginPath();
+                    ctx.rect(tileSizeSmall*i,tileSizeSmall*j,tileSizeSmall,tileSizeSmall);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        ctx.fillStyle = "red";
+        ctx.fillRect(p.x/smallDiv,p.y/smallDiv,5,5);
+        ctx.lineWidth = 2;
+        ctx.beginPath()
+        ctx.moveTo(p.x/smallDiv,p.y/smallDiv)
+        ctx.lineTo(p.x/smallDiv + 10*p.vx,p.y/smallDiv + 10*p.vy)
+        ctx.stroke()
+
+        // ctx.beginPath()
+        // ctx.strokeStyle = "red"
+        // ctx.moveTo(p.x,smallDiv,p.y/smallDiv)
+        // ctx.lineTo(nextRowX,nextRowY);
+        // ctx.stroke()
+
+        // ctx.lineWidth = 1;
+        // ctx.beginPath()
+        // ctx.strokeStyle = "green"
+        // ctx.moveTo(p.x,p.y)
+        // ctx.lineTo(nextColX,nextColY);
+        // ctx.stroke() 
+    } 
+
+//Player Functions
+function movement(){
+    let speed = 0;
+
+    //forward and backward walking
+    if (keys && keys[87]) {
+        speed += p.maxspeed; 
+    }
+
+    if (keys && keys[83]) {
+        speed += -p.maxspeed/2;
+    }
+
+    //rotation
+    let rotation = p.rotation;
+
+    if (keys && keys[65]) {
+        rotation += -3;
+    }
+    if (keys && keys[68]) {
+        rotation += 3; 
+    }
+    p.rotation = rotation;
+
+    const cos =  Math.sin(toRadians(rotation));
+    const sin =  Math.cos(toRadians(rotation));
+
+    // set rotation vector
+    
+    p.vx = sin;
+    p.vy = cos;
+
+    const newX = p.x + sin * speed;
+    const newY = p.y + cos * speed;
+    // translate x and y by vector vx and vy
+    
+    if(getBlock(newX,newY) < 0){
+        p.x = newX;
+        p.y = newY;
+
+        let block = getBlock(p.x,p.y);
+
+
+        p.x += 3 * tileSize;
+        p.y += 4 * tileSize;
+        // p.rotation += 90;
+    }else{
+
+        if(!isCollisionWithTile(newX,p.y)){
+            p.x = newX;
+        }
+
+        if(!isCollisionWithTile(p.x,newY)){
+            p.y = newY;
+        }
+    }
+}
+
+
+function isCollisionWithTile(x,y){
+
+    if(x < 0)return true;
+    if(x > worldWidth*tileSize)return true;
+    if(y < 0) return true;
+    if(y > worldHeight*tileSize)return true;
+
+    return(map[Math.floor(y/tileSize)][Math.floor(x/tileSize)] != 0)
+
+}
+
+function getBlock(x,y){
+    if(x < 0)return Infinity;
+    if(x > worldWidth*tileSize)return Infinity;
+    if(y < 0) return Infinity;
+    if(y > worldHeight*tileSize)return Infinity;
+
+    return map[Math.floor(y/tileSize)][Math.floor(x/tileSize)];
+}
+
+
+
+function toRadians(degrees){
+    let deg = degrees * Math.PI / 180;
+    return deg;
+}
+
+
+class Player {
+    constructor(){
+        this.x = tileSize*1.5;
+        this.y = tileSize*1.5;
+        this.z = 0;
+        this.maxspeed = 2;
+        this.rotation = 0.5;
+        this.vx = 1;
+        this.vy = 1;
+    }
+}
+
+class Ray {
+    constructor(angle,angleDelta,interceptX,interceptY,horizontal){
+        this.angle = angle;
+        this.angleDelta = angleDelta;
+        this.interceptX = interceptX;
+        this.interceptY = interceptY;
+        this.horizontal = horizontal;
+        this.distance = 0;
+    }
+    
+}
+
+function castRay(ray,startX,startY,distance){
+    let angle = ray.angle;
+
+    let vx = Math.cos(angle);
+    let vy = Math.sin(angle);
+    let horizontal = true;
+    
+    let nextRowX = 0;
+    let nextRowY = 0;
+    let rowDeltaX = 0;
+    let rowDeltaY = 0;
+
+    let nextColX = 0;
+    let nextColY = 0;
+    let colDeltaX = 0;
+    let colDeltaY = 0;
+
+    let difference = 0.00000001;
+
+    if(vx > 0){
+        nextColX = (Math.floor(startX/tileSize) + 1) * tileSize + difference;
+        colDeltaX = tileSize;
+    }else{
+        nextColX = Math.floor(startX/tileSize) * tileSize - difference;
+        colDeltaX = -tileSize;
+    }
+    nextColY = startY - (startX - nextColX)*Math.tan(angle);
+
+
+    if(vy > 0){
+        nextRowY = (Math.floor(startY/tileSize) + 1) * tileSize + difference;
+        rowDeltaY = tileSize;
+    }else{
+        nextRowY = Math.floor(startY/tileSize) * tileSize - difference;
+        rowDeltaY = -tileSize;
+    }
+    nextRowX = startX + (startY - nextRowY)/Math.tan(-angle);
+
+    // console.log(" " + nextColX + " " + nextColY + " " + nextRowX + " " + nextRowY + " ")
+
+    colDeltaY = Math.tan(angle)*colDeltaX;
+    rowDeltaX = 1/Math.tan(angle)*rowDeltaY;
+
+    let currentDepth = 0;
+    const maxDepth = 20;
+    let hit = false;
+
+    let distanceRow = 0;
+    let distanceColumn = 0;
+
+    //row intercept
+
+    while(!hit && currentDepth < maxDepth){
+        hit = isCollisionWithTile(nextRowX,nextRowY);
+
+        if(!hit){
+            currentDepth++;
+            nextRowX += rowDeltaX;
+            nextRowY += rowDeltaY;
+        }
+    }
+
+    distanceRow = Math.hypot(Math.abs(startX - nextRowX),Math.abs(startY - nextRowY));
+
+    currentDepth = 0;
+    hit = false;
+    while(!hit && currentDepth < maxDepth){
+        hit = isCollisionWithTile(nextColX,nextColY);
+        
+        if(!hit){
+            currentDepth++;
+            nextColX += colDeltaX;
+            nextColY += colDeltaY;
+        }
+    }
+
+    distanceColumn = Math.hypot(Math.abs(startX - nextColX),Math.abs(startY - nextColY));
+
+    // assign ray values;
+    if(distanceRow < distanceColumn){
+        ray.interceptX = nextRowX;
+        ray.interceptY = nextRowY;
+        ray.horizontal = true;
+    }else{
+        ray.interceptX = nextColX;
+        ray.interceptY = nextColY;
+        ray.horizontal = false;
+    }
+
+    ray.distance = Math.min(distanceColumn,distanceRow) + distance;
+    
+}
+
+</script>
+<img src = "graph.jpg">
+<p>Make sure this window has focus, then use the arrow keys on you keyboard to move the red square.</p>
+<p>When pressing both the left and the down arrow, the red square will move both down and to the left.</p>
+</body>
+</html>

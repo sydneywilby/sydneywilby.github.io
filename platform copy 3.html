@@ -6,39 +6,11 @@
         
 </head>
 <body onload="startGame()">
-        <canvas id="screen" width="900" height="900"></canvas>
+        <canvas id="screen" width="500" height="500"></canvas>
 
         <canvas id = "imageLoad"></canvas>
 <script>
 'use strict'
-let img = new Image();
-img.crossOrigin = "anonymous";
-img.src = "./images/bricks.jpg";
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-img.addEventListener("load", () => {
-  ctx.drawImage(img, 0, 0);
-  img.style.display = "none";
-});
-const hoveredColor = document.getElementById("hovered-color");
-const selectedColor = document.getElementById("selected-color");
-
-function pick(event, destination) {
-  const bounding = canvas.getBoundingClientRect();
-  const x = event.clientX - bounding.left;
-  const y = event.clientY - bounding.top;
-  const pixel = ctx.getImageData(x, y, 1, 1);
-  const data = pixel.data;
-
-  const rgbColor = `rgb(${data[0]} ${data[1]} ${data[2]} / ${data[3] / 255})`;
-  destination.style.background = rgbColor;
-  destination.textContent = rgbColor;
-
-  return rgbColor;
-}
-
-canvas.addEventListener("mousemove", (event) => pick(event, hoveredColor));
-canvas.addEventListener("click", (event) => pick(event, selectedColor));
 
 var p;
 var keys = null;
@@ -47,8 +19,8 @@ let portals = [[4,3,0],[0,-4,0],[2,0,0],[-2,0,0]];
 
 const tileSize = 80;
 const fov = 90;
-const width = 900;
-const height = 900;
+const width = 500;
+const height = 500;
 const columnWidth = 1;
 const rayCount = Math.ceil(width / columnWidth);
 const viewDist = (width/2) / Math.tan(toRadians(fov/2));
@@ -58,9 +30,8 @@ const viewDist = (width/2) / Math.tan(toRadians(fov/2));
 
 let rayAngles = null;
 let rays = null;
-
-let imageData;
-// let img ;
+let imgData;
+let img ;
 
 const map = [
     [-1, -1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -135,19 +106,22 @@ function startGame() {
     
     loadImages();
     // document.body.appendChild(img);
-    setInterval(update, 20);
+    setInterval(update, 16);
     
 }
 
 function loadImages(){
     img = new Image();
-    img.src = "./images/bricks.jpg";
-    const canvas = document.getElementById("imageLoad");
+    img.crossOrigin = "anonymous";
+    img.src = "https://raw.githubusercontent.com/sydneywilby/sydneywilby.github.io/main/images/bricks.jpg";
+    let canvas = document.getElementById("imageLoad");
     const ctx = canvas.getContext("2d");
     img.addEventListener("load", () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
         ctx.drawImage(img, 0, 0);
-        let globalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
+        imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        console.log("finished")
         img.style.display = "none";
     });
    
@@ -231,7 +205,7 @@ function update(){
 
         drawWalls(ctx);
 
-        drawGrid(ctx);
+        // drawGrid(ctx);
     } 
 
 //Player Functions
@@ -386,33 +360,36 @@ async function drawWalls(ctx){
             let position = 0;
             
             if(!ray.horizontal){
-                position = Math.floor(((ray.interceptY % tileSize) / tileSize) * 620);
+                position = Math.floor(((ray.interceptY % tileSize) / tileSize) * (img.width - 20));
             }else{
-                position = Math.floor(((ray.interceptX % tileSize) / tileSize) * 620);
+                position = Math.floor(((ray.interceptX % tileSize) / tileSize) * (img.width - 20));
                 ctx.fillStyle = "black";
                 ctx.fillRect(columnWidth*ray.strip,height/2 - wh/2,columnWidth,wh);
                 ctx.globalAlpha = 0.5;
 
             }
 
-            ctx.drawImage(img, position, 0, 20, 640, columnWidth*ray.strip, height/2 - wh/2, width/rayCount, wh)
+            ctx.drawImage(img, position, 0, 20, img.height, columnWidth*ray.strip, height/2 - wh/2, width/rayCount, wh)
             ctx.globalAlpha = 1;
         }
 }
 
-function drawFloor(imageData){
-    for(let row = height/2;row < height;row+=columnWidth){
-        for(let rayItter = 0;rayItter < rayAngles.length;rayItter+=1){
-            let index = (rayItter + row * imageData.width) * 4;
-            // imageData.data[index] = imgData[Math.floor(Math.random()*(640/4))* 4];
-            // imageData.data[index+1] = imgData[Math.floor(Math.random()*(160))* 4 + 1];
-            // imageData.data[index+2] = imgData[Math.floor(Math.random()*(160))* 4 + 2];
-            // imageData.data[index+3] = 255;
+async function drawFloor(imageData){
+    for(let rayItter = 0;rayItter < rayAngles.length;rayItter+=1){
+        for(let row = height/2;row < height;row+=columnWidth){
+            let index = (row + rayItter * imageData.width) * 4;
+
+            let colorPos = Math.floor(Math.random()*240 / 4) * 4;
+
+            // imageData.data[index] = imgData[colorPos];
+            // imageData.data[index+1] = imgData[colorPos];
+            // imageData.data[index+2] = imgData[colorPos];
+            imageData.data[index+3] = 255;
         }
     }
 }
-function drawCeiling(imageData){
-    for(let row = 0;row < height;row+=columnWidth){
+async function drawCeiling(imageData){
+    for(let row = 0;row < height/2;row+=columnWidth){
         for(let rayItter = 0;rayItter < rayAngles.length;rayItter+=1){
             let index = (rayItter + row * imageData.width) * 4;
             imageData.data[index] = 123;

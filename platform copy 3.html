@@ -6,7 +6,7 @@
         
 </head>
 <body onload="startGame()">
-        <canvas id="screen" width="500" height="500"></canvas>
+        <canvas id="screen" width="900" height="900"></canvas>
 
         <canvas id = "imageLoad"></canvas>
 <script>
@@ -17,10 +17,10 @@ var keys = null;
 
 let portals = [[4,3,0],[0,-4,0],[2,0,0],[-2,0,0]];
 
-const tileSize = 80;
+const tileSize = 640;
 const fov = 90;
-const width = 500;
-const height = 500;
+const width = 900;
+const height = 900;
 const columnWidth = 1;
 const rayCount = Math.ceil(width / columnWidth);
 const viewDist = (width/2) / Math.tan(toRadians(fov/2));
@@ -106,19 +106,19 @@ function startGame() {
     
     loadImages();
     // document.body.appendChild(img);
-    setInterval(update, 16);
+    setInterval(update, 18);
     
 }
 
 function loadImages(){
     img = new Image();
     img.crossOrigin = "anonymous";
-    img.src = "https://raw.githubusercontent.com/sydneywilby/sydneywilby.github.io/main/images/bricks.jpg";
+    img.src = "https://cdn1.byjus.com/wp-content/uploads/2019/08/16-cardinal-directions-representation.png";
     let canvas = document.getElementById("imageLoad");
     const ctx = canvas.getContext("2d");
     img.addEventListener("load", () => {
-        canvas.width = img.width;
-        canvas.height = img.height;
+        canvas.width = tileSize;
+        canvas.height = tileSize;
         ctx.drawImage(img, 0, 0);
         imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         console.log("finished")
@@ -193,8 +193,11 @@ function update(){
 
         let imageData = ctx.createImageData(width, height);
 
-        drawCeiling(imageData);
-        drawFloor(imageData);
+        if(typeof imgData !== 'undefined') {
+            // drawCeiling(imageData);
+            // drawFloor(imageData);
+            drawCeilingAndFloor(imageData);
+        }
 
         ctx.putImageData(imageData,0,0);
         
@@ -347,11 +350,9 @@ function drawGrid(ctx){
 }
 
 async function drawWalls(ctx){
-    
-
     for(let rayItter = 0;rayItter < rayAngles.length;rayItter++){
             let ray = rays[rayItter];
-            let wh = (viewDist/ray.distance)*tileSize;
+            let wh = (viewDist/ray.distance)*tileSize*2;
 
             let vx = Math.cos(ray.angle);
             let vy = Math.sin(ray.angle);
@@ -373,28 +374,96 @@ async function drawWalls(ctx){
             ctx.globalAlpha = 1;
         }
 }
+async function drawCeilingAndFloor(imageData){
+    for(let rayItter = 0;rayItter < rayAngles.length;rayItter+=1){
+        let ray = rays[rayItter];
+        const difference = (viewDist/ray.distance)*tileSize;
+        let column = ray.strip;
+
+        // let angle = toRadians(p.rotation % 360) + ray.angleDelta;
+        let angle = -toRadians(p.rotation) + ray.angleDelta
+        const cosRayAngle = Math.cos(angle);
+        const sinRayAngle = Math.sin(angle);
+
+        for(let row = 0;row <= height/2 - difference/2 + 1;row++){
+            let index = (column + row * imageData.width) * 4;
+
+            let index2 = (column + (height - row) * imageData.width) * 4;
+
+            const dy = row - height/2;
+    
+
+            let floorDistance = (ray.viewDistance * tileSize) / dy;
+            let worldX = p.x + floorDistance * -cosRayAngle;
+            let worldY = p.y + floorDistance * sinRayAngle;
+
+            let textureX = Math.floor(worldX) % tileSize ;
+            let textureY = Math.floor(worldY) % tileSize ;
+
+            if(textureX < 0){
+                textureX += tileSize;
+                textureX = textureX % tileSize;
+
+            }
+            if(textureY < 0){
+                textureY += tileSize;
+                textureY = textureY %  tileSize;
+            }
+
+            let x = (textureX + textureY*imgData.width) * 4;
+
+            let r = imgData.data[x];
+            let g = imgData.data[x+1];
+            let b = imgData.data[x+2];
+            let a = imgData.data[x+3];
+
+            imageData.data[index] = r;
+            imageData.data[index+1] = g;
+            imageData.data[index+2] = b;
+            imageData.data[index+3] = a;
+
+            imageData.data[index2] = r;
+            imageData.data[index2+1] = g;
+            imageData.data[index2+2] = b;
+            imageData.data[index2+3] = a;
+
+            // console.log(imgData);
+
+        }
+    }
+}
+
 
 async function drawFloor(imageData){
     for(let rayItter = 0;rayItter < rayAngles.length;rayItter+=1){
-        for(let row = height/2;row < height;row+=columnWidth){
-            let index = (row + rayItter * imageData.width) * 4;
+        let ray = rays[rayItter];
+        const difference = (viewDist/ray.distance)*tileSize;
+        let column = ray.strip;
 
-            let colorPos = Math.floor(Math.random()*240 / 4) * 4;
 
-            // imageData.data[index] = imgData[colorPos];
-            // imageData.data[index+1] = imgData[colorPos];
-            // imageData.data[index+2] = imgData[colorPos];
+        for(let row = height;row >= height/2 - 1 + difference/2;row--){
+            let index = (column + row * imageData.width) * 4;
+            let x = 40*4;
+            imageData.data[index] = imgData[x];
+            imageData.data[index+1] = imgData[x+1];
+            imageData.data[index+2] = imgData[x+2];
             imageData.data[index+3] = 255;
         }
     }
 }
 async function drawCeiling(imageData){
-    for(let row = 0;row < height/2;row+=columnWidth){
-        for(let rayItter = 0;rayItter < rayAngles.length;rayItter+=1){
-            let index = (rayItter + row * imageData.width) * 4;
-            imageData.data[index] = 123;
-            imageData.data[index+1] = 123;
-            imageData.data[index+2] = 123;
+    for(let rayItter = 0;rayItter < rayAngles.length;rayItter+=1){
+        let ray = rays[rayItter];
+        const difference = (viewDist/ray.distance)*tileSize;
+        let column = ray.strip;
+
+
+        for(let row = 0;row <= height/2 - difference/2;row++){
+            let index = (column + row * imageData.width) * 4;
+            let x = 40*4;
+            imageData.data[index] = imgData[x];
+            imageData.data[index+1] = imgData[x+1];
+            imageData.data[index+2] = imgData[x+2];
             imageData.data[index+3] = 255;
         }
     }
@@ -406,7 +475,7 @@ class Player {
         this.x = tileSize*1.5;
         this.y = tileSize*1.5;
         this.z = 0;
-        this.maxspeed = 2;
+        this.maxspeed = tileSize/30;
         this.rotation = 0.5;
         this.vx = 1;
         this.vy = 1;
@@ -422,6 +491,9 @@ class Ray {
         this.interceptY = interceptY;
         this.horizontal = horizontal;
         this.distance = 0;
+
+
+        this.viewDistance = Math.hypot((rayCount/2 - strip)*columnWidth,viewDist);
     }
     
 }

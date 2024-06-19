@@ -6,7 +6,7 @@
         
 </head>
 <body onload="startGame()">
-        <canvas id="screen" width="900" height="900"></canvas>
+        <canvas id="screen" width="900" height="600"></canvas>
 
         <canvas id = "imageLoad"></canvas>
 <script>
@@ -17,32 +17,38 @@ var keys = null;
 
 let portals = [[4,3,0],[0,-4,0],[2,0,0],[-2,0,0]];
 
-const tileSize = 640;
+const tileSize = 750;
 const fov = 90;
 const width = 900;
-const height = 900;
+const height = 600;
 const columnWidth = 1;
 const rayCount = Math.ceil(width / columnWidth);
 const viewDist = (width/2) / Math.tan(toRadians(fov/2));
+const wallHeight = 2;
+
+let slider = 0;
+let slide = false;
 
 
 
 
 let rayAngles = null;
 let rays = null;
-let imgData;
-let img ;
 
-const map = [
-    [-1, -1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
-    [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
-    [1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1],
-    [1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1],
-    [1, 0, 1, 0, 0, 0, -3, -4, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1],
-    [1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, -2, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1],
+let texturesData;
+let pixelData;
+let textures ;
+
+let map = [
+    [-1, -1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 4, 0, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+    [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
+    [1, 0, 2, 0, 0, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 5, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1],
+    [1, 0, 1, 0, 0, 1, -3, -4, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1],
+    [1, 0, 2, 0, 0, 5, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, -2, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1],
     [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1],
     [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1],
     [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1],
@@ -59,7 +65,7 @@ const map = [
 
 const floor = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1],
     [1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1],
     [1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1],
     [1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1],
@@ -106,24 +112,44 @@ function startGame() {
     
     loadImages();
     // document.body.appendChild(img);
-    setInterval(update, 18);
+    setInterval(update, 20);
     
 }
 
 function loadImages(){
-    img = new Image();
-    img.crossOrigin = "anonymous";
-    img.src = "https://cdn1.byjus.com/wp-content/uploads/2019/08/16-cardinal-directions-representation.png";
-    let canvas = document.getElementById("imageLoad");
-    const ctx = canvas.getContext("2d");
-    img.addEventListener("load", () => {
-        canvas.width = tileSize;
-        canvas.height = tileSize;
-        ctx.drawImage(img, 0, 0);
-        imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        console.log("finished")
-        img.style.display = "none";
-    });
+    textures = [];
+    texturesData = [];
+
+    let imgAddresses = 
+    [
+        "https://art.pixilart.com/sr2b82318c560aws3.png",
+        "https://raw.githubusercontent.com/sydneywilby/sydneywilby.github.io/main/images/bricks.jpg",
+       "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/e9246e62-58d3-4067-8cc1-9274cb91b407/d7wg8cr-8dc7146f-2ab0-496b-8fc3-4a4eef579b81.png/v1/fill/w_900,h_900,q_80,strp/texture__metal_plating_by_randomosityfv_d7wg8cr-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9OTAwIiwicGF0aCI6IlwvZlwvZTkyNDZlNjItNThkMy00MDY3LThjYzEtOTI3NGNiOTFiNDA3XC9kN3dnOGNyLThkYzcxNDZmLTJhYjAtNDk2Yi04ZmMzLTRhNGVlZjU3OWI4MS5wbmciLCJ3aWR0aCI6Ijw9OTAwIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmltYWdlLm9wZXJhdGlvbnMiXX0.z6wQwPlngaPqGXtZN6FfDfDgTQ8Sj1mIoufh9tpw3Z8",
+       "https://dm0qx8t0i9gc9.cloudfront.net/thumbnails/image/rDtN98Qoishumwih/pixelated-black-texture_Mkt_6hDd_thumb.jpg"
+    
+    
+    ];
+
+    for(let index = 0; index < imgAddresses.length; index++){
+        let img = new Image();
+        img.crossOrigin = "anonymous";
+        img.src = imgAddresses[index];
+
+        let canvas = document.getElementById("imageLoad");
+        const ctx = canvas.getContext("2d");
+        img.addEventListener("load", () => {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            texturesData[index] = (imgData);
+            console.log(imgData);
+            pixelData = imgData;
+            console.log("finished")
+        });
+
+        textures.push(img);
+    }
    
 }
 
@@ -147,12 +173,12 @@ function createRayAngles(){
 function update(){
     const c = document.getElementById("screen");
         const ctx = c.getContext("2d");
-       
-        //clears screen stops drawing over same image
-        ctx.clearRect(0, 0, c.width, c.height);
 
         movement();
 
+        interactWithBlockInfront();
+
+        dynamicTimers();
         //select the next aproximation i.e assume not in block
 
         for(let rayItter = 0;rayItter < rayAngles.length;rayItter++){
@@ -191,13 +217,17 @@ function update(){
 
         }
 
+         
+
         let imageData = ctx.createImageData(width, height);
 
-        if(typeof imgData !== 'undefined') {
+        if(typeof texturesData !== 'undefined') {
             // drawCeiling(imageData);
             // drawFloor(imageData);
             drawCeilingAndFloor(imageData);
         }
+        //clears screen stops drawing over same image
+
 
         ctx.putImageData(imageData,0,0);
         
@@ -208,8 +238,19 @@ function update(){
 
         drawWalls(ctx);
 
-        // drawGrid(ctx);
+        if(keys && keys[88]){
+            drawGrid(ctx);
+        }
     } 
+
+async function dynamicTimers(){
+    if(slider >= 3){
+            slide = false;
+        }
+    if(slide){
+        slider += 0.01;
+    }
+}
 
 //Player Functions
 function movement(){
@@ -248,12 +289,14 @@ function movement(){
     // translate x and y by vector vx and vy
     let block = getBlock(newX,newY);
 
-    if(Math.floor(p.y/tileSize) == Math.floor(newY/tileSize)
-        && Math.floor(p.x/tileSize) == Math.floor(newX/tileSize)){
+    // if(Math.floor(p.y/tileSize) == Math.floor(newY/tileSize)
+    //     && Math.floor(p.x/tileSize) == Math.floor(newX/tileSize)){
             
-            p.x = newX;
-            p.y = newY;
-    }else if(block < 0){
+    //         p.x = newX;
+    //         p.y = newY;
+    // }else 
+
+    if(block < 0){
         p.x = newX;
         p.y = newY;
 
@@ -262,6 +305,9 @@ function movement(){
         p.x += portals[index][0] * tileSize;
         p.y += portals[index][1] * tileSize;
         // p.rotation += 90;
+    }else if(block == 4 && slider >= 2){
+        p.x = newX;
+        p.y = newY;
     }else{
 
         if(!isCollisionWithTile(newX,p.y)){
@@ -274,6 +320,21 @@ function movement(){
     }
 }
 
+async function interactWithBlockInfront(){
+    let xTile = Math.floor((p.x + (tileSize)*p.vx) / tileSize);
+    let yTile = Math.floor((p.y + (tileSize)*p.vy) / tileSize);
+
+    if(keys && keys[90]){
+        
+        map[yTile][xTile] = 0;
+    }
+
+    if(keys && keys[67] && map[yTile][xTile] == 4){
+        slide = true;
+    }
+    
+}
+
 
 function isCollisionWithTile(x,y){
 
@@ -284,6 +345,87 @@ function isCollisionWithTile(x,y){
 
     return(map[Math.floor(y/tileSize)][Math.floor(x/tileSize)] != 0)
 
+}
+
+function isRayCollisionWithTile(ray,modifier,x,y,horizontal,dx,dy){
+    let vx = Math.cos(ray.angle);
+    let vy = Math.sin(ray.angle);
+
+    // if the ray hits an empty space then it will always not hit anything
+    if(!isCollisionWithTile(x,y)){
+        return false;
+    }
+
+    let block = getBlock(x,y);
+
+
+    //bars
+    if(block == 3){
+        let xPosition = Math.ceil(x % (tileSize/5));
+        let yPosition = Math.ceil(y % (tileSize/5));
+        let gap = tileSize/8;
+        if(xPosition <= gap/3 && horizontal){
+            return false;
+        }
+        if(yPosition <= gap/3 && !horizontal){
+            return false;
+        }
+    }
+
+    //door test
+    if(block == 4){
+        if(slider > 2){
+            return false;
+        }
+        let deltaX = x % tileSize;
+        let deltaY = y % tileSize;
+        
+        //EAST AND SOUTH SIDES SHOW DIAG
+        if(!horizontal && vx > 0){
+            if(slider > 2){
+                return false;
+            }
+            let smallDeltaY = tileSize*slider * vy;
+
+            if(deltaY + smallDeltaY <= 0){
+                return false;
+            }
+            if(deltaY + smallDeltaY >= tileSize){
+                return false;
+            }
+
+            modifier.deltaX = (tileSize  * slider);
+            modifier.deltaY = smallDeltaY;
+        }else if(horizontal){
+          return false;
+        }
+    }
+        
+        if(block == 5){
+
+        let deltaX = x % tileSize;
+        let deltaY = y % tileSize;
+
+        //EAST AND SOUTH SIDES SHOW DIAG
+        if(!horizontal && vx > 0){
+            let smallDeltaY = tileSize*0.5 * vy;
+
+            if(deltaY + smallDeltaY <= 0){
+                return false;
+            }
+            if(deltaY + smallDeltaY >= tileSize){
+                return false;
+            }
+
+            modifier.deltaX = (tileSize  * 0.5);
+            modifier.deltaY = smallDeltaY;
+        }else if(horizontal){
+        return false;
+        }
+    }
+
+
+    return true;
 }
 
 function getBlock(x,y){
@@ -306,8 +448,7 @@ function drawGrid(ctx){
     // draw grid 
     ctx.fillStyle = "black"
     ctx.strokeStyle = "black"
-
-    let smallDiv = 5;
+    let smallDiv = 10;
     let tileSizeSmall = tileSize / smallDiv;
 
     for(var i = 0; i < worldWidth;i++){
@@ -332,14 +473,27 @@ function drawGrid(ctx){
     ctx.lineWidth = 2;
     ctx.beginPath()
     ctx.moveTo(p.x/smallDiv,p.y/smallDiv)
-    ctx.lineTo(p.x/smallDiv + 10*p.vx,p.y/smallDiv + 10*p.vy)
+    ctx.lineTo((p.x + (tileSize/2)*p.vx) / smallDiv,(p.y + (tileSize/2)*p.vy) / smallDiv);
     ctx.stroke()
+
+    let x = (Math.cos(p.rotation) * tileSize) + p.x;
+    let y = (Math.sin(p.rotation) * tileSize) + p.y;
 
     // ctx.beginPath()
     // ctx.strokeStyle = "red"
-    // ctx.moveTo(p.x,smallDiv,p.y/smallDiv)
+    // ctx.moveTo(x/smallDiv,y/smallDiv)
     // ctx.lineTo(nextRowX,nextRowY);
     // ctx.stroke()
+
+    for(let rayItter = 0; rayItter < rays.length;rayItter++){
+        let ray = rays[rayItter];
+        ctx.beginPath()
+        ctx.strokeStyle = "yellow"
+        ctx.moveTo(p.x/smallDiv,p.y/smallDiv)
+        ctx.lineTo(ray.interceptX/smallDiv,ray.interceptY/smallDiv);
+        ctx.stroke();
+    }
+    
 
     // ctx.lineWidth = 1;
     // ctx.beginPath()
@@ -352,32 +506,46 @@ function drawGrid(ctx){
 async function drawWalls(ctx){
     for(let rayItter = 0;rayItter < rayAngles.length;rayItter++){
             let ray = rays[rayItter];
-            let wh = (viewDist/ray.distance)*tileSize*2;
+            let wh = (viewDist/ray.distance)*tileSize*wallHeight;
+
+            const index = Math.max(1,Math.min(getBlock(ray.interceptX,ray.interceptY),textures.length)) - 1;
+            const img = textures[index];
 
             let vx = Math.cos(ray.angle);
             let vy = Math.sin(ray.angle);
 
             
             let position = 0;
+
+            ctx.fillStyle = "black";
+            ctx.fillRect(columnWidth*ray.strip,height/2 - wh/2,columnWidth,wh);
             
             if(!ray.horizontal){
-                position = Math.floor(((ray.interceptY % tileSize) / tileSize) * (img.width - 20));
+                if(vx>0){
+                    position = Math.floor(((ray.interceptY % tileSize) / tileSize) * (img.width));
+                }else{
+                    position = Math.floor(((ray.interceptY % tileSize) / tileSize) * (img.width));
+                }
             }else{
-                position = Math.floor(((ray.interceptX % tileSize) / tileSize) * (img.width - 20));
-                ctx.fillStyle = "black";
-                ctx.fillRect(columnWidth*ray.strip,height/2 - wh/2,columnWidth,wh);
-                ctx.globalAlpha = 0.5;
-
+                if(vy < 0){
+                    position = Math.floor(((ray.interceptX % tileSize) / tileSize) * (img.width));
+                }else{
+                    position = Math.floor(((ray.interceptX % tileSize) / tileSize) * (img.width));
+                }
             }
 
-            ctx.drawImage(img, position, 0, 20, img.height, columnWidth*ray.strip, height/2 - wh/2, width/rayCount, wh)
+            ctx.globalAlpha = getDarkness(ray.distance);
+            ctx.drawImage(img, position, 0, 1, img.height, columnWidth*ray.strip, height/2 - wh/2, width/rayCount, wh)
             ctx.globalAlpha = 1;
         }
 }
 async function drawCeilingAndFloor(imageData){
+    let img = textures[1];
+    let imgData = texturesData[1];
+
     for(let rayItter = 0;rayItter < rayAngles.length;rayItter+=1){
         let ray = rays[rayItter];
-        const difference = (viewDist/ray.distance)*tileSize;
+        const difference = (viewDist/ray.distance)*tileSize*wallHeight;
         let column = ray.strip;
 
         // let angle = toRadians(p.rotation % 360) + ray.angleDelta;
@@ -392,30 +560,36 @@ async function drawCeilingAndFloor(imageData){
 
             const dy = row - height/2;
     
-
             let floorDistance = (ray.viewDistance * tileSize) / dy;
             let worldX = p.x + floorDistance * -cosRayAngle;
             let worldY = p.y + floorDistance * sinRayAngle;
 
-            let textureX = Math.floor(worldX) % tileSize ;
-            let textureY = Math.floor(worldY) % tileSize ;
+            let multiplierX = img.width / tileSize;
+            let multiplierY = img.height / tileSize;
+
+            let textureX = (Math.floor(worldX) % tileSize);
+            let textureY = (Math.floor(worldY) % tileSize);
 
             if(textureX < 0){
                 textureX += tileSize;
                 textureX = textureX % tileSize;
-
             }
+            textureX = Math.floor(textureX * multiplierX);
+
             if(textureY < 0){
                 textureY += tileSize;
                 textureY = textureY %  tileSize;
             }
+            textureY = Math.floor(textureY * multiplierY);
 
             let x = (textureX + textureY*imgData.width) * 4;
 
-            let r = imgData.data[x];
-            let g = imgData.data[x+1];
-            let b = imgData.data[x+2];
-            let a = imgData.data[x+3];
+            let darkness = getDarkness(floorDistance);
+
+            const r = imgData.data[x] * darkness;
+            const g = imgData.data[x+1] * darkness;
+            const b = imgData.data[x+2] * darkness;
+            const a = imgData.data[x+3];
 
             imageData.data[index] = r;
             imageData.data[index+1] = g;
@@ -495,7 +669,13 @@ class Ray {
 
         this.viewDistance = Math.hypot((rayCount/2 - strip)*columnWidth,viewDist);
     }
-    
+}
+
+class RayModifier {
+    constructor(){
+        this.deltaX = 0;
+        this.deltaY = 0;
+    }
 }
 
 function castRay(ray,startX,startY,distance){
@@ -547,11 +727,11 @@ function castRay(ray,startX,startY,distance){
 
     let distanceRow = 0;
     let distanceColumn = 0;
-
     //row intercept
 
+    let modifier = new RayModifier();
     while(!hit && currentDepth < maxDepth){
-        hit = isCollisionWithTile(nextRowX,nextRowY);
+        hit = isRayCollisionWithTile(ray,modifier,nextRowX,nextRowY,true,colDeltaX,colDeltaY);
 
         if(!hit){
             currentDepth++;
@@ -560,12 +740,16 @@ function castRay(ray,startX,startY,distance){
         }
     }
 
+    nextRowX += modifier.deltaX;
+    nextRowY += modifier.deltaY;
+
     distanceRow = Math.hypot(Math.abs(startX - nextRowX),Math.abs(startY - nextRowY));
+    //  + Math.hypot(modifier.deltaX,modifier.deltaY);
 
     currentDepth = 0;
     hit = false;
     while(!hit && currentDepth < maxDepth){
-        hit = isCollisionWithTile(nextColX,nextColY);
+        hit = isRayCollisionWithTile(ray,modifier,nextColX,nextColY,false,rowDeltaX,rowDeltaY);
         
         if(!hit){
             currentDepth++;
@@ -574,7 +758,11 @@ function castRay(ray,startX,startY,distance){
         }
     }
 
+    nextColX += modifier.deltaX;
+    nextColY += modifier.deltaY;
     distanceColumn = Math.hypot(Math.abs(startX - nextColX),Math.abs(startY - nextColY));
+    
+    // + Math.hypot(modifier.deltaX,modifier.deltaY);
 
     // assign ray values;
     if(distanceRow < distanceColumn){
@@ -589,6 +777,12 @@ function castRay(ray,startX,startY,distance){
 
     ray.distance = Math.min(distanceColumn,distanceRow) + distance;
     
+}
+
+function getDarkness(distance){
+    distance = Math.abs(distance);
+    let light = 1 - (0.12 * (distance / tileSize));
+    return Math.max(0.05,light);
 }
 
 </script>

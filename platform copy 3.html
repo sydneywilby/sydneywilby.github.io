@@ -17,7 +17,7 @@ var keys = null;
 
 let portals = [[4,3,0],[0,-4,0],[2,0,0],[-2,0,0]];
 
-const tileSize = 750;
+const tileSize = 64;
 const fov = 90;
 const width = 900;
 const height = 600;
@@ -122,9 +122,7 @@ function loadImages(){
 
     let imgAddresses = 
     [
-        "https://art.pixilart.com/sr2b82318c560aws3.png",
-        "https://raw.githubusercontent.com/sydneywilby/sydneywilby.github.io/main/images/bricks.jpg",
-       "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/e9246e62-58d3-4067-8cc1-9274cb91b407/d7wg8cr-8dc7146f-2ab0-496b-8fc3-4a4eef579b81.png/v1/fill/w_900,h_900,q_80,strp/texture__metal_plating_by_randomosityfv_d7wg8cr-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9OTAwIiwicGF0aCI6IlwvZlwvZTkyNDZlNjItNThkMy00MDY3LThjYzEtOTI3NGNiOTFiNDA3XC9kN3dnOGNyLThkYzcxNDZmLTJhYjAtNDk2Yi04ZmMzLTRhNGVlZjU3OWI4MS5wbmciLCJ3aWR0aCI6Ijw9OTAwIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmltYWdlLm9wZXJhdGlvbnMiXX0.z6wQwPlngaPqGXtZN6FfDfDgTQ8Sj1mIoufh9tpw3Z8",
+        "https://raw.githubusercontent.com/sydneywilby/sydneywilby.github.io/main/images/bricks%20small.jpg",
        "https://dm0qx8t0i9gc9.cloudfront.net/thumbnails/image/rDtN98Qoishumwih/pixelated-black-texture_Mkt_6hDd_thumb.jpg"
     
     
@@ -286,6 +284,7 @@ function movement(){
 
     const newX = p.x + sin * speed;
     const newY = p.y + cos * speed;
+
     // translate x and y by vector vx and vy
     let block = getBlock(newX,newY);
 

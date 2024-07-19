@@ -9,9 +9,10 @@
         <canvas id="screen" width="900" height="500" style="background-color: black;"></canvas>
 
         <canvas id = "imageLoad" style="display:none;"></canvas>
-
+        <button onclick="makeFullscreen()">Go Fullscreen</button>
 <script>
 'use strict'
+
 
 var p;
 var keys = null;
@@ -26,6 +27,20 @@ let canvas = document.getElementById('screen');
 const width = canvas.width;
 const height = canvas.height;
 const columnWidth = 1;
+
+function makeFullscreen() {
+      var canvas = document.getElementById('screen');
+      if (canvas.requestFullscreen) {
+        canvas.requestFullscreen();
+      } else if (canvas.mozRequestFullScreen) { // Firefox
+        canvas.mozRequestFullScreen();
+      } else if (canvas.webkitRequestFullscreen) { // Chrome, Safari and Opera
+        canvas.webkitRequestFullscreen();
+      } else if (canvas.msRequestFullscreen) { // IE/Edge
+        canvas.msRequestFullscreen();
+      }
+    }
+
 
 const rayCount = Math.ceil(width / columnWidth);
 const viewDist = (width/2) / Math.tan(toRadians(fov/2));
@@ -278,39 +293,48 @@ async function update(){
 async function drawWallsAndEntities(ctx){ 
 
 let rayPos = rays.length - 1;
-let spritePos = 0;
-let wall = rays[rayPos]
+let spritePos = sprites.length - 1;
 
-const raysCopy = [...rays];
-const spritesCopy = [...rays];
 
-raysCopy.sort((a, b) => a.distance - b.distance);
+const indexesRays = rays.map((_, index) => index);
+const indexesSprites = sprites.map((_, index) => index);
 
-raysCopy.sort((a, b) => a.distance - b.distance);
+// Sort the indexes array based on the distance property
+indexesRays.sort((a, b) => rays[a].distance - rays[b].distance);
+indexesSprites.sort((a, b) => sprites[a].distance - sprites[b].distance);
 
-let distance = sprites[0].distance 
+let wall = rays[indexesRays[rayPos]]
+let sprite = sprites[indexesSprites[spritePos]]
 
-while(rayPos >= 0 ){
-    wall = raysCopy[rayPos]
-    if(distance < wall.distance){
+while(rayPos >= 0 && spritePos >= 0){
+    wall = rays[indexesRays[rayPos]]
+    sprite = sprites[indexesSprites[spritePos]]
+    if(wall.distance > sprite.distance){
         drawIndividualWall(ctx, wall);
+        rayPos--;
+    }else{
+        drawSprite(ctx, sprite);
+        spritePos--;
     }
-    
-    rayPos--;
 }
-drawSprite(ctx, sprites[spritePos]);
-    
-rayPos = 0;
-while(rayPos < rays.length ){
-    wall = rays[rayPos]
-    if(distance > wall.distance){
-        drawIndividualWall(ctx, wall);
+
+while(rayPos >= 0){
+    wall = rays[indexesRays[rayPos]]
+    drawIndividualWall(ctx, wall);
+    rayPos--;
     }
-    rayPos++;
+
+
+while(spritePos >= 0){
+    sprite = sprites[indexesSprites[spritePos]]
+    drawSprite(ctx, sprite);
+    spritePos--;
+}
+
 }
 
 // ctx.save();
-}
+
 
 async function sortSprites(){
     let tanHalfFOV = Math.tan(toRadians(fov) / 2.0);

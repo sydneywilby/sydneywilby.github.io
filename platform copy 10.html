@@ -123,7 +123,7 @@ function startGame() {
 function createSprites(){
     sprites = []
     spritesOrder = []
-    let positions = [[4.5,4.5],[4,4],[4,4],[4,4],[4,4]];
+    let positions = [[4.5,4.5],[4,5]];
     let sizes = [tileSize,tileSize,tileSize,tileSize]
 
     for (let positionItter = 0; positionItter < positions.length; positionItter++) {
@@ -983,13 +983,16 @@ class RayModifier {
 }
 
 class Sprite {
-    constructor(xPos,yPos){
+    constructor(xPos,yPos,texture,static){
         this.distance = 0;
         this.distanceCorrected = 0;
         this.angleRad = null;
         this.screenX = null;
         this.xPos = xPos;
         this.yPos = yPos;
+
+        this.texture = texture;
+        this.static = static
     }
 }
 

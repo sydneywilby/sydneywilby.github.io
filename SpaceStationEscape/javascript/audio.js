@@ -10,9 +10,9 @@ class sound {
         document.body.appendChild(this.sound);
         
         this.play = function () {
-            if(!this.sound.paused && this.sound.currentTime > 0 && !this.sound.ended){
+            // if(!this.sound.paused && this.sound.currentTime > 0 && !this.sound.ended){
                 this.sound.play();
-            }
+            // }
         };
 
         this.stop = function () {

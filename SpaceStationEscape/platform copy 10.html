@@ -2,13 +2,18 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<link rel="stylesheet" href="platform.css">
+<!-- <link rel="stylesheet" href="platform.css"> -->
         
+
+<script src="C:\Users\Sydne\Coding\Html&JS&Css\PortfolioWebsite\sydneywilby.github.io\SpaceStationEscape\javascript\audio.js"></script>
+
 </head>
-<body onload="startGame()">
+<body>
         <canvas id="screen" width="1000" height="600" style="background-color: black;"></canvas>
 
         <canvas id = "imageLoad" style="display:none;"></canvas>
+        <button onclick="startGame()">Go Fullscreen</button>
+
         <button onclick="makeFullscreen()">Go Fullscreen</button>
 <script>
 'use strict'
@@ -22,6 +27,7 @@ let portals = [[4,3,0],[0,-4,0],[2,0,0],[-2,0,0]];
 let inventory = null;
 
 const tileSize = 64;
+
 
 const fov = 100;
 
@@ -99,6 +105,8 @@ const worldWidth = map[0].length;
 const worldHeight = map.length;
 
 function startGame() {
+    var music = new sound(".\\resources\\sounds\\background.mp3",true);
+    music.play();
     p = new Player(100,100,0);
 
     createRayAngles();
@@ -453,6 +461,7 @@ async function dynamicTimers(){
 //Player Functions
 function movement(){
     let speed = 0;
+    let moved = false;
 
     //forward and backward walking
     if (keys && keys[87]) {
@@ -506,20 +515,32 @@ function movement(){
 
         p.x += portals[index][0] * tileSize;
         p.y += portals[index][1] * tileSize;
+
+        moved = true;
         // p.rotation += 90;
     }else if(block == 4 && slider >= 2){
         p.x = newX;
         p.y = newY;
+
+        moved = true;
     }else{
 
         if(!isEntityCollisionWithTile(newX,p.y,tileSize/4)){
             p.x = newX;
+            moved = true;
         }
 
         if(!isEntityCollisionWithTile(p.x,newY,tileSize/4)){
             p.y = newY;
+            moved = true;
         }
     }
+
+    // if(moved){
+            // var footsteps = new sound("C:\\Users\\Sydne\\Coding\\Html&JS&Css\\PortfolioWebsite\\sydneywilby.github.io\\SpaceStationEscape\\resources\\sounds\\footsteps-metal.mp3",false)
+    //     footsteps.play();
+    
+    // }
 }
 
 async function interactWithBlockInfront(){
@@ -1146,7 +1167,6 @@ function getDarkness(distance){
 
 
 </script>
-<img src = "graph.jpg">
 <p>Make sure this window has focus, then use the arrow keys on you keyboard to move the red square.</p>
 <p>When pressing both the left and the down arrow, the red square will move both down and to the left.</p>
 </body>

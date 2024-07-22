@@ -6,7 +6,7 @@ class TitleScreen extends GameScreen {
 
        this.#background = new Image();
        this.#background.crossOrigin = "anonymous";
-       this.#background.src = "https://raw.githubusercontent.com/sydneywilby/sydneywilby.github.io/main/SpaceStationEscape copy/resources/images/title.png";
+       this.#background.src = "./resources/images/corridor.png";
        this.#buttons = [new GameButton(width * 0.8,height*0.7,180,20,"PLAY"),new GameButton(width * 0.8,height*0.7 + 30,180,20,"LEVELS"),new GameButton(width * 0.8,height*0.7 + 60,180,20,"SETTINGS"),new GameButton(width * 0.8,height*0.7 + 90,180,20,"CREDITS")]
     }
 

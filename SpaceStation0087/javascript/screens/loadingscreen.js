@@ -43,6 +43,8 @@ class LoadingScreen extends GameScreen {
         ctx.fillStyle = "rgb(255,255,255)"
         console.log(dimheight)
         ctx.fillRect(width/2 - dimwidth/2,height - 40 - dimheight/2,dimwidth,dimheight);
+        ctx.fillStyle = "rgba(31,14,28,255)"
+        ctx.fillText(text,width/2,height - 45);
         ctx.fillStyle = "rgb(255,255,255)"
         ctx.fillText(text,width/2,height - 40);
     }    

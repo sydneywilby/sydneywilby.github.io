@@ -210,9 +210,9 @@ class LoadingScreen extends GameScreen {
        this.defineLoadingTexts();
 
        const images = [
-        "https://raw.githubusercontent.com/sydneywilby/sydneywilby.github.io/main/SpaceStation0087/resources/images/corridor.png",
-        "https://raw.githubusercontent.com/sydneywilby/sydneywilby.github.io/main/SpaceStation0087/resources/images/title.png",
-        "https://raw.githubusercontent.com/sydneywilby/sydneywilby.github.io/main/SpaceStation0087/resources/images/growth.png"]
+        "./resources/images/corridor.png",
+        "./resources/images/title.png",
+        "./resources/images/growth.png"]
        
         for (let index = 0; index < this.#backgroundtexts.length; index++) {
           let background = new Image();

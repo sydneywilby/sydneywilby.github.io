@@ -31,21 +31,18 @@ class LoadingScreen extends GameScreen {
     }
 
     drawScreen(ctx){
-        ctx.font = "30px cyber";
         ctx.textAlign = "center"
         
         const img = this.#backgrounds[this.#currentBackgroundIndex];
         ctx.drawImage(img,0,0,width,height);
         const text = this.#backgroundtexts[this.#currentBackgroundTextIndex]
-        const dimwidth = ctx.measureText(text).width;
-        const dimheight= ctx.measureText(text).height;
-        ctx.fillStyle = "rgb(0,0,0)";
-        ctx.fillStyle = "rgb(255,255,255)"
-        console.log(dimheight)
-        ctx.fillRect(width/2 - dimwidth/2,height - 40 - dimheight/2,dimwidth,dimheight);
         ctx.fillStyle = "rgba(31,14,28,255)"
-        ctx.fillText(text,width/2,height - 45);
+        ctx.font = "31px cyber";
+        ctx.lineWidth = 5;
+        ctx.strokeText(text,width/2,height - 35);
         ctx.fillStyle = "rgb(255,255,255)"
+        ctx.font = "30px cyber";
+        ctx.lineWidth = 1;
         ctx.fillText(text,width/2,height - 40);
     }    
 

@@ -33,6 +33,17 @@ class LoadingScreen extends GameScreen {
     drawScreen(ctx){
         ctx.textAlign = "center"
         
+        ctx.shadowColor = "red"; // string
+
+// Horizontal distance of the shadow, in relation to the text.
+ctx.shadowOffsetX = 0; // integer
+
+// Vertical distance of the shadow, in relation to the text.
+ctx.shadowOffsetY = 0; // integer
+
+// Blurring effect to the shadow, the larger the value, the greater the blur.
+ctx.shadowBlur = 10;
+
         const img = this.#backgrounds[this.#currentBackgroundIndex];
         ctx.drawImage(img,0,0,width,height);
         const text = this.#backgroundtexts[this.#currentBackgroundTextIndex]

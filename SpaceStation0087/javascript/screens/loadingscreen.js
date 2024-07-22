@@ -15,8 +15,8 @@ class LoadingScreen extends GameScreen {
 
        const images = [
         "./resources/images/corridor.png",
-        "./resources/images/title.png",
-        "./resources/images/growth.png"]
+        "./resources/images/corridor.png",
+        "./resources/images/corridor.png"]
        
         for (let index = 0; index < this.#backgroundtexts.length; index++) {
             const background = new Image();

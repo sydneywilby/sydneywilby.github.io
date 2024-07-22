@@ -5,6 +5,57 @@ class LoadingScreen extends GameScreen {
     #currentBackgroundTextIndex = 0;
     #lastTime;
 
+    constructor(){
+       super();
+
+       this.#backgrounds = [];
+       
+       this.defineLoadingTexts();
+
+
+       const images = [
+        "./resources/images/corridor.png",
+        "./resources/images/title.png",
+        "./resources/images/growth.png"]
+       
+        for (let index = 0; index < this.#backgroundtexts.length; index++) {
+            const background = new Image();
+            background.crossOrigin = "anonymous";
+            background.src = images[index];
+    
+            background.addEventListener("load", () => {
+                this.#backgrounds.push(background);
+            });
+       }
+       this.#lastTime = (new Date()).getTime();
+    }
+
+    drawScreen(ctx){
+        ctx.font = "30px cyber";
+        ctx.textAlign = "center"
+        
+        const img = this.#backgrounds[this.#currentBackgroundIndex];
+        ctx.drawImage(img,0,0,width,height);
+        const text = this.#backgroundtexts[this.#currentBackgroundTextIndex]
+        const dimwidth = ctx.measureText(text).width;
+        const dimheight= ctx.measureText(text).height;
+        ctx.fillStyle = "rgb(0,0,0)";
+        ctx.fillStyle = "rgb(255,255,255)"
+        console.log(dimheight)
+        ctx.fillRect(width/2 - dimwidth/2,height - 40 - dimheight/2,dimwidth,dimheight);
+        ctx.fillStyle = "rgb(255,255,255)"
+        ctx.fillText(text,width/2,height - 40);
+    }    
+
+    updateScreen(){
+        const cur = (new Date()).getTime();
+        if(cur - this.#lastTime > 10000){
+            this.#currentBackgroundIndex = Math.floor(Math.random()*this.#backgrounds.length);
+            this.#currentBackgroundTextIndex = Math.floor(Math.random()*this.#backgroundtexts.length);
+            this.#lastTime = (new Date()).getTime();
+        }
+    }
+
     defineLoadingTexts(){
         this.#backgroundtexts = [
             "They're watching you...",
@@ -198,54 +249,5 @@ class LoadingScreen extends GameScreen {
             "You need to hurry.",
             "The portal is your last hope."
         ];
-    }
-
-
-
-    constructor(){
-       super();
-
-       this.#backgrounds = [];
-       
-       this.defineLoadingTexts();
-
-       const images = [
-        "./resources/images/corridor.png",
-        "./resources/images/title.png",
-        "./resources/images/growth.png"]
-       
-        for (let index = 0; index < this.#backgroundtexts.length; index++) {
-          let background = new Image();
-          background.crossOrigin = "anonymous";
-          background.src = images[index];
-          this.#backgrounds.push(background);
-       }
-       this.#lastTime = (new Date()).getTime();
-    }
-
-    drawScreen(ctx){
-        ctx.font = "30px cyber";
-        ctx.textAlign = "center"
-        
-        const img = this.#backgrounds[this.#currentBackgroundIndex];
-        ctx.drawImage(img,0,0,width,height);
-        const text = this.#backgroundtexts[this.#currentBackgroundTextIndex]
-        const dimwidth = ctx.measureText(text).width;
-        const dimheight= ctx.measureText(text).height;
-        ctx.fillStyle = "rgb(0,0,0)";
-        ctx.fillStyle = "rgb(255,255,255)"
-        console.log(dimheight)
-        ctx.fillRect(width/2 - dimwidth/2,height - 40 - dimheight/2,dimwidth,dimheight);
-        ctx.fillStyle = "rgb(255,255,255)"
-        ctx.fillText(text,width/2,height - 40);
-    }    
-
-    updateScreen(){
-        const cur = (new Date()).getTime();
-        if(cur - this.#lastTime > 10000){
-            this.#currentBackgroundIndex = Math.floor(Math.random()*this.#backgrounds.length);
-            this.#currentBackgroundTextIndex = Math.floor(Math.random()*this.#backgroundtexts.length);
-            this.#lastTime = (new Date()).getTime();
-        }
     }
 }

@@ -5,11 +5,21 @@
 <!-- <link rel="stylesheet" href="platform.css"> -->
      
 <!-- Custom graphical methods -->
+
+<script>
+    const height = 500;
+    const width = 900;
+</script>
+
 <script src=".\javascript\graphics\customgraphics.js"></script>
+<script src=".\javascript\ui\gamebutton.js"></script>
+
 
 <script src=".\javascript\audio.js"></script>
 <script src=".\javascript\screens\abstractscreen.js"></script>
 <script src=".\javascript\screens\titlescreen.js"></script>
+<script src=".\javascript\screens\loadingscreen.js"></script>
+
 <script src=".\javascript\gamestates.js"></script>
 
 <style>
@@ -44,9 +54,19 @@ const tileSize = 64;
 const fov = 100;
 
 let canvas = document.getElementById('screen');
-const width = canvas.width;
-const height = canvas.height;
+canvas.width = width;
+canvas.height = height;
 const columnWidth = 1;
+
+var myFont = new FontFace('cyber', 'url(./resources/fonts/AeogoPixellated-Regular.ttf)');
+
+myFont.load().then(function(font){
+
+  // with canvas, if this is ommited won't work
+  document.fonts.add(font);
+  console.log('Font loaded');
+
+});
 
 function makeFullscreen() {
       var canvas = document.getElementById('screen');
@@ -87,6 +107,7 @@ let sprites = null
 let texturesData;
 let pixelData;
 let textures ;
+
 
 let map = [
     [1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -129,6 +150,7 @@ function startGame() {
     createRays();
     createSprites();
     createInventory();
+
     keys = [];
 
     window.addEventListener('keydown', function (e) {
@@ -235,6 +257,9 @@ async function update(){
         const c = document.getElementById("screen");
         const ctx = c.getContext("2d");
         ctx.imageSmoothingEnabled = false;
+        ctx.webkitImageSmoothingEnabled = false;
+        ctx.mozImageSmoothingEnabled = false;
+        ctx.imageSmoothingEnabled = false;
 
         movement();
 
@@ -314,6 +339,7 @@ async function update(){
         let minTimeDiff = 400;
 
         GAMESCREEN[STATE].drawScreen(ctx);
+        GAMESCREEN[STATE].updateScreen();
 
         if(deltaTime >= minTimeDiff)
             window.requestAnimationFrame(update);

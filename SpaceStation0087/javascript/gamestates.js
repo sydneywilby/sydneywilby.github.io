@@ -4,11 +4,11 @@ let STATE = null;
 
 function defineGameStates(){
     const states = [
-        ['GAME-TITLE',new TitleScreen()],
+        ['GAME-TITLE',new LoadingScreen()],
         ['MENU',new TitleScreen()],
         ['LEVEL',new TitleScreen()],
         ['LEVEL-SELECT',new TitleScreen()],
-        ['LOADING',new TitleScreen()]
+        ['LOADING',new LoadingScreen()]
     ];      
     
     for (let index = 0; index < states.length; index++) {

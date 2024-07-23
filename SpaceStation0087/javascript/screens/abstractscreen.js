@@ -1,4 +1,6 @@
 class GameScreen {
+    #loading = false;
+    #buttons = [];
 
     constructor(){
         if(this.constructor === GameScreen){
@@ -13,5 +15,26 @@ class GameScreen {
     updateScreen(){
         throw new Error('Function not implemented')
     }
+
+    getLoading(){
+        return this.#loading;
+    }
+
+    setLoading(loading){
+        this.#loading = loading;
+    }
+
+    setButtons(buttons){
+        this.#buttons = buttons;
+    }
+
+    updateButtons(mouse){
+        const len = this.#buttons.length
+        for (let index = 0; index < len; index++) {
+            const button = this.#buttons[index];
+            button.update(mouse);
+        }
+    }
+
 
 }

@@ -6,12 +6,11 @@ class TitleScreen extends GameScreen {
 
        this.#background = new Image();
        this.#background.crossOrigin = "anonymous";
-       this.#background.src = "./resources/images/corridor.png";
+       this.#background.src = "https://sydneywilby.github.io/SpaceStation0087/resources/images/title.png";
        this.#buttons = [new GameButton(width * 0.8,height*0.7,180,20,"PLAY"),new GameButton(width * 0.8,height*0.7 + 30,180,20,"LEVELS"),new GameButton(width * 0.8,height*0.7 + 60,180,20,"SETTINGS"),new GameButton(width * 0.8,height*0.7 + 90,180,20,"CREDITS")]
     }
 
     drawScreen(ctx){
-
         ctx.fillStyle = "rgb(5,4,5)";
         ctx.fillRect(0,0,width,height);
         ctx.fillStyle = "rgba(255, 255, 255, 1)"
@@ -35,9 +34,10 @@ class TitleScreen extends GameScreen {
     }
 
     updateScreen(){
-        for (let index = 0; index < this.#buttons.length; index++) {
-            const element = this.#buttons[index];
-            element.update();
+        this.updateButtons(mouse);
+
+        if(keys && keys[13]){
+            STATE = GAMESTATE['MENU'];
         }
     }
 }

@@ -4,6 +4,8 @@ class LoadingScreen extends GameScreen {
     #currentBackgroundIndex = 0;
     #currentBackgroundTextIndex = 0;
     #lastTime;
+    #lastAnimationTime;
+    #animationCount = 0;
 
     constructor(){
        super();
@@ -14,9 +16,9 @@ class LoadingScreen extends GameScreen {
 
 
        const images = [
-        "./resources/images/corridor.png",
-        "./resources/images/growth.png",
-        "./resources/images/spacemen.png"]
+        "https://sydneywilby.github.io/SpaceStation0087/resources/images/corridor.png",
+        "https://sydneywilby.github.io/SpaceStation0087/resources/images/growth.png",
+        "https://sydneywilby.github.io/SpaceStation0087/resources/images/spacemen.png"]
        
         for (let index = 0; index < this.#backgroundtexts.length; index++) {
             const background = new Image();
@@ -28,24 +30,16 @@ class LoadingScreen extends GameScreen {
             });
        }
        this.#lastTime = (new Date()).getTime();
+       this.#lastAnimationTime = (new Date()).getTime();
     }
 
     drawScreen(ctx){
         ctx.textAlign = "center"
-        
-        ctx.shadowColor = "red"; // string
 
-// Horizontal distance of the shadow, in relation to the text.
-ctx.shadowOffsetX = 0; // integer
-
-// Vertical distance of the shadow, in relation to the text.
-ctx.shadowOffsetY = 0; // integer
-
-// Blurring effect to the shadow, the larger the value, the greater the blur.
-ctx.shadowBlur = 10;
-
+        const difference = Math.abs(Math.sin(this.#animationCount / 57.2957795))*20;
+    
         const img = this.#backgrounds[this.#currentBackgroundIndex];
-        ctx.drawImage(img,0,0,width,height);
+        ctx.drawImage(img,-difference/2,-difference/2,width+difference,height+difference);
         const text = this.#backgroundtexts[this.#currentBackgroundTextIndex]
         ctx.fillStyle = "rgba(31,14,28,255)"
         ctx.font = "31px cyber";
@@ -62,8 +56,14 @@ ctx.shadowBlur = 10;
         if(cur - this.#lastTime > 10000){
             this.#currentBackgroundIndex = Math.floor(Math.random()*this.#backgrounds.length);
             this.#currentBackgroundTextIndex = Math.floor(Math.random()*this.#backgroundtexts.length);
-            this.#lastTime = (new Date()).getTime();
+            this.#lastTime = cur;
         }
+        if(cur - this.#lastAnimationTime > 10){
+            this.#animationCount++;
+            this.#animationCount %= 360;
+            this.#lastAnimationTime = cur;
+        }
+
     }
 
     defineLoadingTexts(){

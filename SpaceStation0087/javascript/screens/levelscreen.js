@@ -1,14 +1,21 @@
 class LevelScreen extends GameScreen{
-    
+
         constructor(){
             super();
+            this.setButtons(
+                [movementJoyStick,arrowLeft,arrowRight]);
+
         }
 
         drawScreen(ctx){
             drawOnlyFunction(ctx);
+            this.drawButtons(ctx);
         }
     
         updateScreen(){
+            if(mobileView){
+                this.updateButtons(mouse);
+            }
             updateOnlyFunction();
         }
     }
@@ -539,47 +546,66 @@ class LevelScreen extends GameScreen{
     function movement(){
         let speed = 0;
         let moved = false;
+
+        let newX = p.x;
+        let newY = p.y;
     
-        //forward and backward walking
-        if (keys && keys[87]) {
-            speed += p.maxspeed; 
-            steps.sound.playbackRate = 1.0;
-        }
-    
-        if (keys && keys[83]) {
-            speed += -p.maxspeed/2;
-            steps.sound.playbackRate = 0.8;
-        }
-    
-        if (keys && keys[16]) {
-            speed *= 1.5; 
-            steps.sound.playbackRate = 1.2;
-        }
-    
-        //rotation
-        let rotation = p.rotation;
-    
-        if (keys && keys[65]) {
-            rotation += -3;
-        }
-        if (keys && keys[68]) {
-            rotation += 3; 
-        }
-        if(rotation < 0){
-            rotation += 360;
-        }
-        p.rotation = rotation % 360;
-    
-        const cos =  Math.sin(toRadians(rotation));
-        const sin =  Math.cos(toRadians(rotation));
-    
-        // set rotation vector
+        if(mobileView){
+
+            if(arrowLeft.isClicked()){
+                p.rotation -= 3;
+            }
+            if(arrowRight.isClicked()){
+                p.rotation += 3;
+            }
+            const angle = movementJoyStick.getAngle() + toRadians(p.rotation);
+
+            newX = p.x - Math.sin(angle) * p.maxspeed * movementJoyStick.getScale();
+            newY = p.y - Math.cos(angle) * p.maxspeed * movementJoyStick.getScale();
+        }else{
+
         
-        p.vx = sin;
-        p.vy = cos;
-    
-        const newX = p.x + sin * speed;
-        const newY = p.y + cos * speed;
+            //forward and backward walking
+            if (keys && keys[87]) {
+                speed += p.maxspeed; 
+                steps.sound.playbackRate = 1.0;
+            }
+        
+            if (keys && keys[83]) {
+                speed += -p.maxspeed/2;
+                steps.sound.playbackRate = 0.8;
+            }
+        
+            if (keys && keys[16]) {
+                speed *= 1.5; 
+                steps.sound.playbackRate = 1.2;
+            }
+        
+            //rotation
+            let rotation = p.rotation;
+        
+            if (keys && keys[65]) {
+                rotation += -3;
+            }
+            if (keys && keys[68]) {
+                rotation += 3; 
+            }
+            if(rotation < 0){
+                rotation += 360;
+            }
+            p.rotation = rotation % 360;
+        
+            const cos =  Math.sin(toRadians(rotation));
+            const sin =  Math.cos(toRadians(rotation));
+        
+            // set rotation vector
+            
+            p.vx = sin;
+            p.vy = cos;
+        
+            newX = p.x + sin * speed;
+            newY = p.y + cos * speed;
+        }
     
         // translate x and y by vector vx and vy
         let block = getBlock(newX,newY);

@@ -41,7 +41,7 @@ class LoadingScreen extends GameScreen {
         const img = this.#backgrounds[this.#currentBackgroundIndex];
         ctx.drawImage(img,-difference/2,-difference/2,width+difference,height+difference);
         const text = this.#backgroundtexts[this.#currentBackgroundTextIndex]
-        ctx.fillStyle = "rgba(31,14,28,255)"
+         
         ctx.font = "31px cyber";
         ctx.lineWidth = 5;
         ctx.strokeText(text,width/2,height - 35);

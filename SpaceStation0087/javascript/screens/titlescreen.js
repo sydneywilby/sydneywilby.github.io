@@ -7,7 +7,11 @@ class TitleScreen extends GameScreen {
        this.#background = new Image();
        this.#background.crossOrigin = "anonymous";
        this.#background.src = "https://sydneywilby.github.io/SpaceStation0087/resources/images/title.png";
-       this.#buttons = [new GameButton(width * 0.8,height*0.7,180,20,"PLAY"),new GameButton(width * 0.8,height*0.7 + 30,180,20,"LEVELS"),new GameButton(width * 0.8,height*0.7 + 60,180,20,"SETTINGS"),new GameButton(width * 0.8,height*0.7 + 90,180,20,"CREDITS")]
+       this.setButtons(
+        [new GameButton(width * 0.8,height*0.7,180,20,"PLAY",function(){ STATE = GAMESTATE[GAMESTATE['GAME']]; }),
+        new GameButton(width * 0.8,height*0.7 + 30,180,20,"LEVELS",function(){ STATE = GAMESTATE[GAMESTATE['MENU']]; }),
+        new GameButton(width * 0.8,height*0.7 + 60,180,20,"SETTINGS",function(){ STATE = GAMESTATE[GAMESTATE['SETTINGS']]; }),
+        new GameButton(width * 0.8,height*0.7 + 90,180,20,"CREDITS",function(){ STATE = GAMESTATE[GAMESTATE['CREDITS']]; })]);
     }
 
     drawScreen(ctx){
@@ -27,10 +31,9 @@ class TitleScreen extends GameScreen {
         ctx.strokeText("0087", width, width,scale,scale * (27/42));
         ctx.fillText("0087", width, 60+80);
     
-        for (let index = 0; index < this.#buttons.length; index++) {
-            const element = this.#buttons[index];
-            element.draw(ctx);
-        }
+        this.drawButtons(ctx);
+
+        mouse.draw(ctx);
     }
 
     updateScreen(){

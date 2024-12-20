@@ -36,5 +36,13 @@ class GameScreen {
         }
     }
 
+    drawButtons(ctx){
+        const len = this.#buttons.length
+        for (let index = 0; index < len; index++) {
+            const button = this.#buttons[index];
+            button.draw(ctx);
+        }
+    }
+
 
 }

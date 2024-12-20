@@ -1,5 +1,6 @@
 class Mouse {
     #element;
+    #cursor;
     #x;
     #y;
     #lftClicked = false;
@@ -18,6 +19,14 @@ class Mouse {
         element.addEventListener('mouseout', this.onmouseout.bind(this));
         element.addEventListener('mouseover', this.onmouseover.bind(this));
         element.addEventListener('mouseup', this.onmouseup.bind(this));
+    
+        const background = new Image();
+        background.crossOrigin = "anonymous";
+        background.src = "https://sydneywilby.github.io/SpaceStation0087/resources/images/cursor.png"
+
+        background.addEventListener("load", () => {
+            this.#cursor = background;
+        });
     }
 
     //left click
@@ -91,5 +100,11 @@ class Mouse {
 
     getDoubleClicked(){
         return this.#dbClicked;
+    }
+
+    draw(ctx){
+        if(this.#cursor){
+            ctx.drawImage(this.#cursor,this.getX() - this.#cursor.width,this.getY() - this.#cursor.height);
+        }
     }
 }

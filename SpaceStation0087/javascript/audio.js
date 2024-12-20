@@ -7,7 +7,9 @@ class sound {
         this.sound.setAttribute("preload", "auto");
         this.sound.setAttribute("controls", "none");
         this.sound.style.display = "none";
-        document.body.appendChild(this.sound);
+        if(document && document.body){
+            document.body.appendChild(this.sound);
+        }
         
         this.play = function () {
             // if(!this.sound.paused && !this.sound.ended){

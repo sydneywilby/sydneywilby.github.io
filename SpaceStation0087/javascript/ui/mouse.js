@@ -19,6 +19,11 @@ class Mouse {
         element.addEventListener('mouseout', this.onmouseout.bind(this));
         element.addEventListener('mouseover', this.onmouseover.bind(this));
         element.addEventListener('mouseup', this.onmouseup.bind(this));
+
+        element.addEventListener('ontouchstart', this.onmousedown.bind(this));
+        element.addEventListener('ontouchmove', this.onmousemove.bind(this));
+        element.addEventListener('ontouchend', this.onmouseup.bind(this));
+        element.addEventListener('ontouchcancel', this.onmouseup.bind(this));
     
         const background = new Image();
         background.crossOrigin = "anonymous";
